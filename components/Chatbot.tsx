@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ChatBubbleIcon, XIcon, PaperAirplaneIcon } from './icons';
 import ReactMarkdown from 'react-markdown';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://192.168.0.217:5001/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 console.log('[Chatbot] API Base URL:', API_BASE_URL);
 
 const SYSTEM_PROMPT = `You are a helpful AI assistant for the IIIT-Naya Raipur Attendance Portal. Your purpose is to guide users and answer questions about the application's features and how to use them.

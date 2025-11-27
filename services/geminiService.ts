@@ -1,7 +1,7 @@
 import { Course, Student, AttendanceRecord, AttendanceReportData } from '../types';
 
 // Backend API URL - uses environment variable or falls back to network IP
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://172.16.204.75:5001/api';
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5001/api';
 console.log('[GeminiService] API Base URL:', API_BASE_URL);
 
 async function callBackend(endpoint: string, data: any) {

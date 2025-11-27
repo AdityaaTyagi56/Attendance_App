@@ -3,7 +3,7 @@
  * Handles all CRUD operations with MongoDB via Flask backend
  */
 
-export const API_URL = import.meta.env.VITE_API_URL || 'http://172.16.204.75:5001/api';
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
 // Helper function for API calls
 async function apiCall<T>(endpoint: string, options?: RequestInit): Promise<T> {
