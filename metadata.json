@@ -1,0 +1,7 @@
+{
+  "name": "IIIT-NR Attendance ",
+  "description": "A modern, AI-powered attendance tracking system for IIIT-Naya Raipur. Manage students, courses, and daily attendance, and generate intelligent summaries of attendance patterns using the Gemini API.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

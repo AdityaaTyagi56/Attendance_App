@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">IIIT-NR Attendance</string>
+    <string name="title_activity_main">IIIT-NR Attendance</string>
+    <string name="package_name">com.iiitnr.attendance</string>
+    <string name="custom_url_scheme">com.iiitnr.attendance</string>
+</resources>

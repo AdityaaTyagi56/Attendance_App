@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>IIIT-Naya Raipur</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#000000">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --safe-area-inset-left: env(safe-area-inset-left, 0rem);
+      --safe-area-inset-right: env(safe-area-inset-right, 0rem);
+      --safe-area-inset-top: env(safe-area-inset-top, 0rem);
+      --safe-area-inset-bottom: env(safe-area-inset-bottom, 0rem);
+
+      /* Mustard Yellow, Lime & White Palette */
+      --color-primary: #D4A017;
+      /* Mustard Yellow */
+      --color-primary-light: #E8C547;
+      /* Light Mustard */
+      --color-secondary: #A4D65E;
+      /* Lime Green */
+      --color-accent: #C9E265;
+      /* Light Lime */
+      --color-background: #FFFEF7;
+      /* Off-white/Cream */
+      --color-surface: #FFFFFF;
+      --color-text: #3D3D29;
+      /* Dark Olive */
+      --color-text-secondary: #7A7A5C;
+      /* Medium Olive */
+    }
+
+    body.dark {
+      --color-background: #2A2A1F;
+      /* Dark Olive */
+      --color-surface: #3D3D29;
+      /* Medium Dark Olive */
+      --color-text: #FFFEF7;
+      /* Off-white */
+      --color-text-secondary: #C9C9B3;
+      /* Light Olive */
+
+      background-color: var(--color-background);
+      background-image:
+        radial-gradient(circle at 15% 50%, rgba(212, 160, 23, 0.15) 0%, transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(164, 214, 94, 0.15) 0%, transparent 25%);
+    }
+
+    body {
+      background-color: var(--color-background);
+      color: var(--color-text);
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Modern Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(212, 160, 23, 0.4);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(212, 160, 23, 0.6);
+    }
+
+    /* Glassmorphism Utilities */
+    .glass {
+      background: rgba(255, 254, 247, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(212, 160, 23, 0.2);
+    }
+
+    .dark .glass {
+      background: rgba(61, 61, 41, 0.7);
+      border: 1px solid rgba(232, 197, 71, 0.1);
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(212, 160, 23, 0.3);
+      box-shadow: 0 4px 30px rgba(212, 160, 23, 0.15);
+    }
+
+    .dark .glass-card {
+      background: rgba(61, 61, 41, 0.65);
+      border: 1px solid rgba(232, 197, 71, 0.15);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+    }
+  </style>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            primary: { DEFAULT: '#D4A017', light: '#E8C547', dark: '#B8860B' },
+            secondary: { DEFAULT: '#A4D65E', light: '#C9E265', dark: '#8BC34A' },
+            accent: { DEFAULT: '#F5E6A3', light: '#FFF9E6', dark: '#E8D68A' },
+            surface: { DEFAULT: '#FFFFFF', dark: '#3D3D29' },
+            background: { DEFAULT: '#FFFEF7', dark: '#2A2A1F' },
+          },
+          animation: {
+            'float': 'float 6s ease-in-out infinite',
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'slide-up': 'slideUp 0.5s ease-out forwards',
+            'fade-in': 'fadeIn 0.5s ease-out forwards',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-10px)' },
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(20px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
+            },
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
+  <script src="https://unpkg.com/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.js"></script>
+  <link rel="stylesheet" href="/index.css">
+</head>
+
+<body class="bg-surface-variant dark:bg-surface-dark-variant font-sans">
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
+</html>
