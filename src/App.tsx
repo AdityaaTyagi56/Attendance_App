@@ -12,7 +12,7 @@ import { Users, BookOpen, ClipboardCheck, BarChart2, LogOut, Sun, Moon, UserCirc
 import Chatbot from './components/Chatbot';
 import * as api from './services/apiService';
 import { motion, AnimatePresence } from 'framer-motion';
-import { discoverApiUrl } from './utils/config';
+import { discoverApiUrl, getApiUrl } from './utils/config';
 
 type Theme = 'light' | 'dark';
 
@@ -162,6 +162,7 @@ const App: React.FC = () => {
   }
 
   if (error) {
+    const suggestedUrl = getApiUrl();
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background text-text">
         <motion.div
@@ -178,7 +179,7 @@ const App: React.FC = () => {
           <p className="text-text-secondary mb-4">{error}</p>
           <div className="bg-surface/50 p-4 rounded-xl mb-6 text-left">
             <p className="text-xs text-text-secondary mb-2">📱 For Mobile Data access, set this URL in Settings:</p>
-            <code className="text-xs text-primary break-all">https://clammy-emilee-subtriplicate.ngrok-free.dev</code>
+            <code className="text-xs text-primary break-all">{suggestedUrl.replace(/\/api$/, '')}</code>
             <p className="text-[10px] text-text-secondary mt-2 opacity-70">(We'll automatically add /api for you)</p>
           </div>
           <div className="flex flex-col gap-3">

@@ -27,13 +27,13 @@ const tryConnect = async (url: string, timeout = 2000): Promise<boolean> => {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
-    
+
     const response = await fetch(`${url}/health`, {
       method: 'GET',
       signal: controller.signal,
       mode: 'cors',
     });
-    
+
     clearTimeout(timeoutId);
     return response.ok;
   } catch {
@@ -48,10 +48,10 @@ const tryConnect = async (url: string, timeout = 2000): Promise<boolean> => {
 const tryMultipleUrls = async (urls: string[], timeout = 1500): Promise<string | null> => {
   // Process in batches to avoid overwhelming the network
   const BATCH_SIZE = 50;
-  
+
   for (let i = 0; i < urls.length; i += BATCH_SIZE) {
     const batch = urls.slice(i, i + BATCH_SIZE);
-    
+
     // Try the current batch
     const results = await Promise.allSettled(
       batch.map(async (url) => {
@@ -60,20 +60,20 @@ const tryMultipleUrls = async (urls: string[], timeout = 1500): Promise<string |
         throw new Error('Connection failed');
       })
     );
-    
+
     // Check if any succeeded in this batch
     for (const result of results) {
       if (result.status === 'fulfilled') {
         return result.value;
       }
     }
-    
+
     // Optional: small delay between batches to let network breathe
     if (i + BATCH_SIZE < urls.length) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
   }
-  
+
   return null;
 };
 
@@ -94,10 +94,30 @@ const buildCandidateUrls = (): string[] => {
     addUrl(`http://127.0.0.1:${port}/api`);
   }
 
+  // Current hostname (works for network access)
   if (hasWindow && window.location.hostname) {
     const host = window.location.hostname;
-    for (const port of ports) {
-      addUrl(`http://${host}:${port}/api`);
+    // Skip if it's already localhost or 127.0.0.1
+    if (host !== 'localhost' && host !== '127.0.0.1') {
+      for (const port of ports) {
+        addUrl(`http://${host}:${port}/api`);
+      }
+    }
+  }
+
+  // Common private network IP ranges (for LAN access)
+  // This helps when accessing from other devices on the same network
+  if (hasWindow && window.location.hostname) {
+    const host = window.location.hostname;
+
+    // If we're accessing via a network IP, prioritize it
+    const isPrivateIP = /^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(host);
+
+    if (isPrivateIP) {
+      // Prioritize the current network IP by adding it first
+      for (const port of ports) {
+        addUrl(`http://${host}:${port}/api`);
+      }
     }
   }
 
@@ -135,6 +155,11 @@ export const discoverApiUrl = async (onStatus?: (status: string) => void): Promi
       return storedUrl;
     }
     updateStatus(`Saved URL unreachable. Please verify it in Settings.`);
+    if (hasLocalStorage()) {
+      try {
+        window.localStorage.removeItem('api_url');
+      } catch { }
+    }
   }
 
   // Environment variable URL (for production builds)
@@ -169,7 +194,7 @@ const saveUrl = (url: string) => {
   if (hasLocalStorage()) {
     try {
       window.localStorage.setItem('api_url', url);
-    } catch {}
+    } catch { }
   }
 };
 
@@ -178,7 +203,7 @@ const saveUrl = (url: string) => {
  */
 export const getApiUrl = (): string => {
   if (discoveredApiUrl) return discoveredApiUrl;
-  
+
   const storedUrl = loadStoredUrl();
   if (storedUrl) return storedUrl;
 
@@ -195,12 +220,12 @@ export const getApiUrl = (): string => {
 export const setApiUrl = (url: string) => {
   if (!hasLocalStorage()) return;
   let cleanUrl = url.trim().replace(/\/$/, '');
-  
+
   // Ensure URL ends with /api
   if (!cleanUrl.endsWith('/api')) {
     cleanUrl += '/api';
   }
-  
+
   window.localStorage.setItem('api_url', cleanUrl);
   discoveredApiUrl = cleanUrl;
   window.location.reload();

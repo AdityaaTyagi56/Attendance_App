@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: iiit-nr-attendance-backend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && gunicorn app_mongodb:app --bind 0.0.0.0:$PORT --timeout 120 --workers 2
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.0-flash
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB_NAME
+        value: attendance_db
+      - key: FLASK_ENV
+        value: production
+      - key: PORT
+        value: 5001
