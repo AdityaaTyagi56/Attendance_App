@@ -1,7 +1,9 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Course, Student, AttendanceRecord } from '../types';
 import { UserCircleIcon, CheckCircleIcon, XCircleIcon, ArrowDownTrayIcon, EllipsisVerticalIcon, ClockIcon } from './icons';
 import PhotoViewerModal from './PhotoViewerModal';
+import * as api from '../services/apiService';
+import { motion } from 'framer-motion';
 
 // Add a global declaration for the jsPDF library loaded from the CDN
 declare global {
@@ -16,6 +18,74 @@ interface AttendanceTakerProps {
   attendance: AttendanceRecord[];
   setAttendance: React.Dispatch<React.SetStateAction<AttendanceRecord[]>>;
 }
+
+const StudentAttendanceItem = React.memo(({ student, isPresent, isToggling, onToggle, onPhotoClick, index }: {
+    student: Student;
+    isPresent: boolean;
+    isToggling: boolean;
+    onToggle: (id: string) => void;
+    onPhotoClick: (e: React.MouseEvent, student: Student) => void;
+    index?: number;
+}) => {
+    const animationClass = isToggling ? (isPresent ? 'animate-highlight-present' : 'animate-highlight-absent') : '';
+    
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ 
+                duration: 0.35,
+                delay: index ? Math.min(index * 0.03, 0.3) : 0,
+                ease: [0.22, 1, 0.36, 1]
+            }}
+            whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
+            style={{ willChange: 'transform, opacity' }}
+        >
+            <label
+            htmlFor={`student-checkbox-${student.id}`}
+            className={`p-3 rounded-3xl cursor-pointer flex items-center justify-between border transform-gpu transition-colors duration-200 ${animationClass} ${
+                isPresent 
+                ? 'bg-brand/20 backdrop-blur-md border-brand/50 shadow-lg shadow-brand/20' 
+                : 'bg-surface/80 dark:bg-surface-dark/70 backdrop-blur-xl border-white/10 hover:border-brand/40 hover:shadow-lg hover:shadow-brand/10 shadow-glass'
+            }`}
+            >
+            <div className="flex items-center space-x-3 overflow-hidden">
+                {student.photo ? (
+                <motion.img
+                    whileHover={{ scale: 1.08 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                    onClick={(e) => onPhotoClick(e, student)}
+                    src={student.photo}
+                    alt={student.name}
+                    className="w-10 h-10 rounded-full object-cover flex-shrink-0 cursor-pointer ring-2 ring-transparent hover:ring-brand transform-gpu"
+                    loading="lazy"
+                />
+                ) : (
+                <UserCircleIcon className="w-10 h-10 text-on-surface-variant/30 dark:text-on-surface-dark-variant/30 flex-shrink-0" />
+                )}
+                <div className="truncate">
+                <p className="font-bold text-sm text-on-surface dark:text-on-surface-dark truncate">{student.name}</p>
+                <p className="text-xs text-on-surface-variant dark:text-on-surface-dark-variant font-mono truncate">{student.studentId}</p>
+                </div>
+            </div>
+            <div className="ml-3 flex-shrink-0">
+                <input
+                id={`student-checkbox-${student.id}`}
+                type="checkbox"
+                checked={isPresent}
+                onChange={() => onToggle(student.id)}
+                className="h-5 w-5 rounded border-on-surface-variant/50 dark:border-on-surface-dark-variant/50 text-brand bg-surface dark:bg-surface-dark-variant focus:ring-brand focus:ring-2 focus:ring-offset-0 transition-colors duration-150"
+                />
+            </div>
+            </label>
+        </motion.div>
+    );
+}, (prevProps, nextProps) => 
+    prevProps.student.id === nextProps.student.id &&
+    prevProps.isPresent === nextProps.isPresent &&
+    prevProps.isToggling === nextProps.isToggling
+);
 
 const AttendanceTaker: React.FC<AttendanceTakerProps> = ({ courses, students, attendance, setAttendance }) => {
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
@@ -70,13 +140,13 @@ const AttendanceTaker: React.FC<AttendanceTakerProps> = ({ courses, students, at
     return students.filter(s => selectedCourse.studentIds.includes(s.id));
   }, [selectedCourse, students]);
   
-  const openPhotoViewer = (e: React.MouseEvent, student: Student) => {
+  const openPhotoViewer = useCallback((e: React.MouseEvent, student: Student) => {
     e.stopPropagation(); // Prevent toggling attendance when clicking photo
     if (student.photo) {
       setPhotoToView({ url: student.photo, name: student.name, studentId: student.studentId });
       setIsPhotoViewerOpen(true);
     }
-  };
+  }, []);
 
   const closePhotoViewer = () => {
     setIsPhotoViewerOpen(false);
@@ -92,7 +162,7 @@ const AttendanceTaker: React.FC<AttendanceTakerProps> = ({ courses, students, at
     setRecordTimestamp(existingRecord?.timestamp || null);
   }
 
-  const toggleStudentPresence = (studentId: string) => {
+  const handleToggleStudentPresence = useCallback((studentId: string) => {
     setPresentStudentIds(prev => {
         const newSet = new Set(prev);
         if (newSet.has(studentId)) {
@@ -106,7 +176,7 @@ const AttendanceTaker: React.FC<AttendanceTakerProps> = ({ courses, students, at
     setTimeout(() => {
         setJustToggledStudentId(null);
     }, 750);
-  };
+  }, []);
 
   const handleMarkAllPresent = () => {
     const allEnrolledIds = enrolledStudents.map(s => s.id);
@@ -117,7 +187,7 @@ const AttendanceTaker: React.FC<AttendanceTakerProps> = ({ courses, students, at
     setPresentStudentIds(new Set());
   };
 
-  const handleSaveAttendance = () => {
+  const handleSaveAttendance = async () => {
     if (!selectedCourseId || !date) {
         alert("Please select a course and a date.");
         return;
@@ -125,28 +195,60 @@ const AttendanceTaker: React.FC<AttendanceTakerProps> = ({ courses, students, at
     
     const newTimestamp = Date.now();
     const existingRecordIndex = attendance.findIndex(r => r.courseId === selectedCourseId && r.date === date);
+    const existingRecord = attendance[existingRecordIndex];
 
-    if (existingRecordIndex > -1) {
-        const updatedAttendance = [...attendance];
-        updatedAttendance[existingRecordIndex] = {
-            courseId: selectedCourseId,
-            date,
-            presentStudentIds: Array.from(presentStudentIds),
-            timestamp: newTimestamp,
-        };
-        setAttendance(updatedAttendance);
-    } else {
-        const newRecord: AttendanceRecord = {
-            courseId: selectedCourseId,
-            date,
-            presentStudentIds: Array.from(presentStudentIds),
-            timestamp: newTimestamp,
-        };
-        setAttendance([...attendance, newRecord]);
+    try {
+        if (existingRecordIndex > -1) {
+            const updatedRecord = {
+                ...existingRecord,
+                presentStudentIds: Array.from(presentStudentIds),
+                timestamp: newTimestamp,
+            };
+            
+            // Optimistic update
+            const updatedAttendance = [...attendance];
+            updatedAttendance[existingRecordIndex] = updatedRecord;
+            setAttendance(updatedAttendance);
+            
+            // API call
+            if (existingRecord.id) {
+                await api.updateAttendance(existingRecord.id, updatedRecord);
+            } else {
+                // If no ID, it might be a legacy record or unsaved one. Try creating.
+                const created = await api.createAttendance(updatedRecord);
+                if (created && (created.id || created._id)) {
+                     const realId = created.id || created._id;
+                     setAttendance(prev => prev.map((r, idx) => idx === existingRecordIndex ? { ...r, id: realId } : r));
+                }
+            }
+
+        } else {
+            const newRecord: AttendanceRecord = {
+                courseId: selectedCourseId,
+                date,
+                presentStudentIds: Array.from(presentStudentIds),
+                timestamp: newTimestamp,
+            };
+            
+            // Optimistic update
+            setAttendance([...attendance, newRecord]);
+            
+            // API call
+            const created = await api.createAttendance(newRecord);
+            
+            // Update with real ID
+            if (created && (created.id || created._id)) {
+                const realId = created.id || created._id;
+                setAttendance(prev => prev.map(r => r.courseId === newRecord.courseId && r.date === newRecord.date ? { ...r, id: realId } : r));
+            }
+        }
+        setIsSaved(true);
+        setRecordExists(true);
+        setRecordTimestamp(newTimestamp);
+    } catch (error) {
+        console.error("Failed to save attendance:", error);
+        alert("Failed to save attendance.");
     }
-    setIsSaved(true);
-    setRecordExists(true);
-    setRecordTimestamp(newTimestamp);
   };
 
   const handleDownloadCSV = () => {
@@ -309,43 +411,17 @@ const AttendanceTaker: React.FC<AttendanceTakerProps> = ({ courses, students, at
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-              {enrolledStudents.map(student => {
-                  const isPresent = presentStudentIds.has(student.id);
-                  const isToggling = justToggledStudentId === student.id;
-                  const animationClass = isToggling ? (isPresent ? 'animate-highlight-present' : 'animate-highlight-absent') : '';
-                  return (
-                    <div key={student.id}>
-                        <label
-                        htmlFor={`student-checkbox-${student.id}`}
-                        className={`p-3 rounded-3xl transition-all duration-300 cursor-pointer flex items-center justify-between border active:scale-[0.98] ${animationClass} ${
-                            isPresent 
-                            ? 'bg-brand/20 backdrop-blur-md border-brand/50' 
-                            : 'bg-surface/80 dark:bg-surface-dark/70 backdrop-blur-xl border-white/10 hover:border-brand/40 shadow-glass'
-                        }`}
-                        >
-                        <div className="flex items-center space-x-3 overflow-hidden">
-                            {student.photo ? (
-                            <img onClick={(e) => openPhotoViewer(e, student)} src={student.photo} alt={student.name} className="w-10 h-10 rounded-full object-cover flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-brand transition-all" />
-                            ) : (
-                            <UserCircleIcon className="w-10 h-10 text-on-surface-variant/30 dark:text-on-surface-dark-variant/30 flex-shrink-0" />
-                            )}
-                            <div className="truncate">
-                            <p className="font-bold text-sm text-on-surface dark:text-on-surface-dark truncate">{student.name}</p>
-                            <p className="text-xs text-on-surface-variant dark:text-on-surface-dark-variant font-mono truncate">{student.studentId}</p>
-                            </div>
-                        </div>
-                        <div className="ml-3 flex-shrink-0">
-                            <input
-                            id={`student-checkbox-${student.id}`}
-                            type="checkbox"
-                            checked={isPresent}
-                            onChange={() => toggleStudentPresence(student.id)}
-                            className="h-5 w-5 rounded border-on-surface-variant/50 dark:border-on-surface-dark-variant/50 text-brand bg-surface dark:bg-surface-dark-variant focus:ring-brand focus:ring-2 focus:ring-offset-0 transition"
-                            />
-                        </div>
-                        </label>
-                    </div>
-                )})}
+              {enrolledStudents.map((student, index) => (
+                  <StudentAttendanceItem
+                    key={student.id}
+                    student={student}
+                    isPresent={presentStudentIds.has(student.id)}
+                    isToggling={justToggledStudentId === student.id}
+                    onToggle={toggleStudentPresence}
+                    onPhotoClick={openPhotoViewer}
+                    index={index}
+                  />
+              ))}
             </div>
              {enrolledStudents.length === 0 && <p className="text-sm text-center py-8 text-on-surface-variant dark:text-on-surface-dark-variant">No students enrolled in this course.</p>}
 

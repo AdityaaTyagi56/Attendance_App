@@ -1,13 +1,69 @@
 {
   "name": "iiit-nr-attendance",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "main": "electron/main.js",
+  "author": "IIIT Naya Raipur",
+  "description": "AI-powered Attendance Management System for IIIT Naya Raipur",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "electron:dev": "concurrently \"npm run dev -- --port 3001\" \"wait-on http://localhost:3001 && electron .\"",
+    "electron:build": "npm run build && electron-builder",
+    "electron:build:win": "npm run build && electron-builder --win",
+    "electron:build:mac": "npm run build && electron-builder --mac",
+    "electron:build:linux": "npm run build && electron-builder --linux"
+  },
+  "build": {
+    "appId": "com.iiitnr.attendance",
+    "productName": "IIIT-NR Attendance",
+    "directories": {
+      "output": "electron-dist"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "public/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "icon": "public/icon.png"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "public/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico"
+    }
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",
@@ -23,8 +79,16 @@
   "devDependencies": {
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^9.2.1",
+    "electron": "^39.2.4",
+    "electron-builder": "^26.0.12",
+    "electron-icon-builder": "^2.0.1",
+    "electron-squirrel-startup": "^1.0.1",
+    "png-to-ico": "^3.0.1",
+    "sharp": "^0.34.5",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
-    "vitest": "^4.0.14"
+    "vitest": "^4.0.14",
+    "wait-on": "^9.0.3"
   }
 }

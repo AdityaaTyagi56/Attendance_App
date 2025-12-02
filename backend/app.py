@@ -18,12 +18,20 @@ app = Flask(__name__)
 
 # Configure CORS to allow requests from any origin (for mobile dev)
 CORS(app, resources={
-    r"/api/*": {
+    r"/*": {
         "origins": "*",
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"]
     }
 })
+
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({"status": "online", "message": "IIIT-NR Attendance Backend is Running"}), 200
+
+@app.route('/health', methods=['GET'])
+def health_check_root():
+    return jsonify({"status": "healthy"}), 200
 
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
@@ -481,6 +489,20 @@ if __name__ == '__main__':
         print("⚠ Database initialization failed")
 
     # Run Flask app
-    port = int(os.getenv('PORT', 5001))
+    port = int(os.getenv('PORT', 5005))
+    
+    # Start Ngrok for public access (Mobile Data support)
+    # Default is now TRUE as requested (Scenario B always active)
+    if os.getenv('USE_NGROK', 'true').lower() == 'true':
+        try:
+            from pyngrok import ngrok
+            # Open a ngrok tunnel to the HTTP server
+            public_url = ngrok.connect(port).public_url
+            print(f"\n🌍 Public URL: {public_url}")
+            print(f"👉 Use this URL in the app settings for Mobile Data access!\n")
+        except Exception as e:
+            print(f"⚠ Could not start Ngrok: {e}")
+            print("  (Make sure you have an internet connection)")
+
     print(f"\n🚀 Starting Flask backend on port {port}...")
     app.run(host='0.0.0.0', port=port, debug=True)

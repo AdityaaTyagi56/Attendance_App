@@ -79,10 +79,10 @@ const Login: React.FC<LoginProps> = ({ onLogin, students, teachers }) => {
                 value={apiUrl}
                 onChange={(e) => setApiUrlState(e.target.value)}
                 className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                placeholder="http://192.168.x.x:5001/api"
+                placeholder="https://your-app.ngrok-free.dev"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Current: {getApiUrl()}
+                Current: {getApiUrl()} (We'll add /api automatically)
               </p>
             </div>
             <div className="flex gap-3 justify-end">
@@ -109,32 +109,16 @@ const Login: React.FC<LoginProps> = ({ onLogin, students, teachers }) => {
         </div>
       )}
 
-      {/* Background Elements */}
+      {/* Background Elements - Static gradients instead of heavy animations */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          animate={{
-            x: [0, 100, 0],
-            y: [0, -50, 0],
-            scale: [1, 1.2, 1]
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -right-20 w-96 h-96 bg-primary/20 rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{
-            x: [0, -100, 0],
-            y: [0, 50, 0],
-            scale: [1, 1.5, 1]
-          }}
-          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -bottom-20 -left-20 w-96 h-96 bg-secondary/20 rounded-full blur-3xl"
-        />
+        <div className="absolute -top-20 -right-20 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-secondary/20 rounded-full blur-3xl" />
       </div>
 
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.3 }}
         className="w-full max-w-5xl mx-auto grid md:grid-cols-2 rounded-[2.5rem] overflow-hidden glass-card shadow-2xl relative z-10"
       >
         {/* Left Panel - Branding */}

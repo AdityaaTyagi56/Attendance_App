@@ -17,16 +17,17 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ students, courses, 
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
+        staggerChildren: 0.05
       }
     }
   };
 
   const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
+    hidden: { y: 10, opacity: 0 },
     visible: {
       y: 0,
-      opacity: 1
+      opacity: 1,
+      transition: { duration: 0.2 }
     }
   };
 
@@ -49,9 +50,9 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ students, courses, 
     <motion.button
       variants={itemVariants}
       onClick={onClick}
-      className="group p-6 rounded-3xl glass-card border border-white/10 transition-all duration-300 text-left shadow-lg hover:shadow-xl hover:border-primary/50 active:scale-95 hover:-translate-y-1 w-full"
+      className="group p-6 rounded-3xl glass-card border border-white/10 transition-colors duration-200 text-left shadow-lg hover:shadow-xl hover:border-primary/50 active:scale-[0.98] w-full"
     >
-      <Icon className={`w-8 h-8 text-primary mb-3 transition-transform duration-300 group-hover:scale-110 flex-shrink-0`} />
+      <Icon className={`w-8 h-8 text-primary mb-3 flex-shrink-0`} />
       <div>
         <p className="text-lg font-bold text-text">{label}</p>
         <p className="text-sm text-text-secondary">{description}</p>

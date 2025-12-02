@@ -12,6 +12,7 @@ import { Users, BookOpen, ClipboardCheck, BarChart2, LogOut, Sun, Moon, UserCirc
 import Chatbot from './components/Chatbot';
 import * as api from './services/apiService';
 import { motion, AnimatePresence } from 'framer-motion';
+import { discoverApiUrl } from './utils/config';
 
 type Theme = 'light' | 'dark';
 
@@ -30,6 +31,7 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<string>('Initializing...');
 
   const [isMobileMenuVisible, setIsMobileMenuVisible] = useState(false);
 
@@ -37,6 +39,14 @@ const App: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
+      
+      // Auto-discover the backend URL with status updates
+      const apiUrl = await discoverApiUrl((status) => {
+        setConnectionStatus(status);
+      });
+      
+      // Now load data
+      setConnectionStatus('✓ Connected! Loading data...');
       const [studentsData, coursesData, attendanceData] = await Promise.all([
         api.fetchStudents(),
         api.fetchCourses(),
@@ -45,6 +55,7 @@ const App: React.FC = () => {
       setStudents(studentsData);
       setCourses(coursesData);
       setAttendance(attendanceData);
+      setConnectionStatus('✓ Ready!');
       console.log('✓ Loaded data from MongoDB:', {
         students: studentsData.length,
         courses: coursesData.length,
@@ -58,130 +69,13 @@ const App: React.FC = () => {
     }
   };
 
-  // Load data from MongoDB on mount
+    // Load data from MongoDB on mount
   useEffect(() => {
     loadData();
   }, []);
 
-  // Sync students to MongoDB whenever they change
-  useEffect(() => {
-    if (!isLoading && students.length > 0) {
-      const syncStudents = async () => {
-        try {
-          setIsSyncing(true);
-          const existingStudents = await api.fetchStudents();
-
-          let hasUpdates = false;
-          const updatedStudents = [...students];
-
-          for (let i = 0; i < updatedStudents.length; i++) {
-            const student = updatedStudents[i];
-            const exists = existingStudents.some(es => es.studentId === student.studentId);
-
-            if (!exists) {
-              const created = await api.createStudent(student);
-              console.log(`✓ Synced student to MongoDB: ${student.name}`);
-              updatedStudents[i] = { ...student, id: created._id || created.id };
-              hasUpdates = true;
-            } else if (!student.id && exists) {
-              const existing = existingStudents.find(es => es.studentId === student.studentId);
-              if (existing) {
-                updatedStudents[i] = { ...student, id: existing._id || existing.id };
-                hasUpdates = true;
-              }
-            }
-          }
-
-          if (hasUpdates) {
-            setStudents(updatedStudents);
-          }
-        } catch (error) {
-          console.error('Failed to sync students:', error);
-        } finally {
-          setIsSyncing(false);
-        }
-      };
-      syncStudents();
-    }
-  }, [students, isLoading]);
-
-  // Sync courses to MongoDB whenever they change
-  useEffect(() => {
-    if (!isLoading && courses.length > 0) {
-      const syncCourses = async () => {
-        try {
-          const existingCourses = await api.fetchCourses();
-
-          let hasUpdates = false;
-          const updatedCourses = [...courses];
-
-          for (let i = 0; i < updatedCourses.length; i++) {
-            const course = updatedCourses[i];
-            const exists = existingCourses.some(ec => ec.code === course.code);
-
-            if (!exists) {
-              const created = await api.createCourse(course);
-              console.log(`✓ Synced course to MongoDB: ${course.name}`);
-              updatedCourses[i] = { ...course, id: created._id || created.id };
-              hasUpdates = true;
-            } else if (!course.id && exists) {
-              const existing = existingCourses.find(ec => ec.code === course.code);
-              if (existing) {
-                updatedCourses[i] = { ...course, id: existing._id || existing.id };
-                hasUpdates = true;
-              }
-            }
-          }
-
-          if (hasUpdates) {
-            setCourses(updatedCourses);
-          }
-        } catch (error) {
-          console.error('Failed to sync courses:', error);
-        }
-      };
-      syncCourses();
-    }
-  }, [courses, isLoading]);
-
-  // Sync attendance to MongoDB whenever it changes
-  useEffect(() => {
-    if (!isLoading && attendance.length > 0) {
-      const syncAttendance = async () => {
-        try {
-          const existingRecords = await api.fetchAttendance();
-
-          let hasUpdates = false;
-          const updatedAttendance = [...attendance];
-
-          for (let i = 0; i < updatedAttendance.length; i++) {
-            const record = updatedAttendance[i];
-            const exists = existingRecords.some(er => er.courseId === record.courseId && er.date === record.date);
-
-            if (!exists) {
-              const created = await api.createAttendance(record);
-              console.log(`✓ Synced attendance to MongoDB`);
-              updatedAttendance[i] = { ...record, id: created._id || created.id };
-              hasUpdates = true;
-            } else if (!record.id && exists) {
-              const existing = existingRecords.find(er => er.courseId === record.courseId && er.date === record.date);
-              if (existing) {
-                updatedAttendance[i] = { ...record, id: existing._id || existing.id };
-                hasUpdates = true;
-              }
-            }
-          }
-
-          if (hasUpdates) {
-            setAttendance(updatedAttendance);
-          }
-        } catch (error) {
-          console.error('Failed to sync attendance:', error);
-        }
-      };
-      syncAttendance();
-    }
-  }, [attendance, isLoading]);
+  // Removed heavy sync effects to improve performance
+  // Data is now synced directly when actions occur in the respective components
 
   useEffect(() => {
     if ('serviceWorker' in navigator) {
@@ -240,15 +134,29 @@ const App: React.FC = () => {
       <div className="min-h-screen flex flex-col items-center justify-center bg-background text-primary">
         <motion.div
           animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full mb-8"
+          transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+          className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full mb-8 transform-gpu"
+          style={{ willChange: 'transform' }}
         />
-        <div className="text-text-secondary text-sm font-mono bg-surface/50 p-4 rounded-xl backdrop-blur-sm border border-white/10 max-w-md w-full">
-          <p className="mb-2 font-bold text-primary">Debug Info:</p>
-          <p>API URL: {api.API_URL}</p>
-          <p>Status: Connecting to backend...</p>
-          <p className="text-xs mt-2 opacity-70">If this takes longer than 10s, please check your network connection.</p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ 
+            type: "spring",
+            stiffness: 300,
+            damping: 24
+          }}
+          className="text-text-secondary text-sm font-mono bg-surface/50 p-4 rounded-xl backdrop-blur-sm border border-white/10 max-w-md w-full mx-4"
+        >
+          <p className="mb-2 font-bold text-primary">🔗 Connecting...</p>
+          <motion.p
+            key={connectionStatus}
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="text-green-500"
+          >{connectionStatus}</motion.p>
+        </motion.div>
       </div>
     );
   }
@@ -267,13 +175,26 @@ const App: React.FC = () => {
             </svg>
           </div>
           <h2 className="text-xl font-bold mb-2">Connection Error</h2>
-          <p className="text-text-secondary mb-6">{error}</p>
-          <button
-            onClick={loadData}
-            className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-primary/20 active:scale-95"
-          >
-            Retry Connection
-          </button>
+          <p className="text-text-secondary mb-4">{error}</p>
+          <div className="bg-surface/50 p-4 rounded-xl mb-6 text-left">
+            <p className="text-xs text-text-secondary mb-2">📱 For Mobile Data access, set this URL in Settings:</p>
+            <code className="text-xs text-primary break-all">https://clammy-emilee-subtriplicate.ngrok-free.dev</code>
+            <p className="text-[10px] text-text-secondary mt-2 opacity-70">(We'll automatically add /api for you)</p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={loadData}
+              className="bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-primary/20 active:scale-95"
+            >
+              Retry Connection
+            </button>
+            <button
+              onClick={() => setError(null)}
+              className="bg-surface hover:bg-surface-dark text-text font-bold py-3 px-6 rounded-xl transition-all border border-white/10 active:scale-95"
+            >
+              Go to Login (Configure Settings)
+            </button>
+          </div>
         </motion.div>
       </div>
     );

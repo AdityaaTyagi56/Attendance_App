@@ -17,7 +17,7 @@ interface StudentDashboardProps {
   toggleTheme: () => void;
 }
 
-const CircularProgress: React.FC<{ percentage: number; size?: number; strokeWidth?: number; }> = ({ percentage, size = 120, strokeWidth = 10 }) => {
+const CircularProgress: React.FC<{ percentage: number; size?: number; strokeWidth?: number; }> = React.memo(({ percentage, size = 120, strokeWidth = 10 }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (percentage / 100) * circumference;
@@ -25,7 +25,18 @@ const CircularProgress: React.FC<{ percentage: number; size?: number; strokeWidt
   const color = percentage >= 75 ? '#10b981' : percentage >= 50 ? '#f59e0b' : '#ef4444';
 
   return (
-    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+    <motion.div
+      initial={{ scale: 0.9, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ 
+        type: "spring",
+        stiffness: 260,
+        damping: 20,
+        mass: 0.8
+      }}
+      className="relative flex items-center justify-center transform-gpu"
+      style={{ width: size, height: size, willChange: 'transform' }}
+    >
       <svg className="transform -rotate-90" width={size} height={size}>
         <circle
           className="text-black/5 dark:text-white/5"
@@ -36,7 +47,7 @@ const CircularProgress: React.FC<{ percentage: number; size?: number; strokeWidt
           cx={size / 2}
           cy={size / 2}
         />
-        <circle
+        <motion.circle
           stroke={color}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
@@ -44,21 +55,38 @@ const CircularProgress: React.FC<{ percentage: number; size?: number; strokeWidt
           r={radius}
           cx={size / 2}
           cy={size / 2}
-          style={{ strokeDasharray: circumference, strokeDashoffset: offset, transition: 'stroke-dashoffset 1s ease-out' }}
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ 
+            duration: 0.8, 
+            ease: [0.22, 1, 0.36, 1],
+            delay: 0.2
+          }}
+          style={{ strokeDasharray: circumference, willChange: 'stroke-dashoffset' }}
         />
       </svg>
-      <span className="absolute text-2xl font-bold text-text">
+      <motion.span
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ 
+          type: "spring",
+          stiffness: 400,
+          damping: 15,
+          delay: 0.4
+        }}
+        className="absolute text-2xl font-bold text-text"
+      >
         {percentage}<span className="text-base">%</span>
-      </span>
-    </div>
+      </motion.span>
+    </motion.div>
   );
-};
+}, (prevProps, nextProps) => prevProps.percentage === nextProps.percentage && prevProps.size === nextProps.size);
 
 const MiniCalendarHeatmap: React.FC<{
   studentId: string;
   courseId: string;
   attendanceRecords: AttendanceRecord[];
-}> = ({ studentId, courseId, attendanceRecords }) => {
+}> = React.memo(({ studentId, courseId, attendanceRecords }) => {
   const heatMapData = useMemo(() => {
     const data = [];
     const attendanceMap = new Map<string, boolean>();
@@ -115,13 +143,13 @@ const MiniCalendarHeatmap: React.FC<{
       </div>
     </div>
   );
-};
+});
 
 const AttendanceCalendar: React.FC<{
   studentId: string;
   courseId: string;
   attendanceRecords: AttendanceRecord[];
-}> = ({ studentId, courseId, attendanceRecords }) => {
+}> = React.memo(({ studentId, courseId, attendanceRecords }) => {
   const [displayDate, setDisplayDate] = useState(new Date());
 
   const attendanceMap = useMemo(() => {
@@ -201,7 +229,7 @@ const AttendanceCalendar: React.FC<{
       </div>
     </div>
   );
-};
+});
 
 
 const StudentDashboard: React.FC<StudentDashboardProps> = ({ student, courses, attendanceRecords, onLogout, theme, toggleTheme }) => {
@@ -218,10 +246,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ student, courses, a
   const [isAiLoading, setIsAiLoading] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
+    // Removed artificial delay - show content immediately
+    setIsLoading(false);
   }, []);
 
   const openPhotoViewer = () => {

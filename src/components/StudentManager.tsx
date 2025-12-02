@@ -4,6 +4,7 @@ import { PlusIcon, TrashIcon, PencilIcon, UserCircleIcon, CameraIcon, ArrowUpTra
 import Modal from './Modal';
 import PhotoViewerModal from './PhotoViewerModal';
 import ImportSummaryModal from './ImportSummaryModal';
+import * as api from '../services/apiService';
 
 interface StudentManagerProps {
   students: Student[];
@@ -345,34 +346,66 @@ const StudentManager: React.FC<StudentManagerProps> = ({ students: allStudents, 
       return Object.keys(newErrors).length === 0;
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate() || photoError) return;
 
-    if (currentStudent) {
-      setStudents(allStudents.map(s => s.id === currentStudent.id ? { ...s, name, studentId, email, password, photo, branch } : s));
-    } else {
-      const newStudent: Student = {
-        id: Date.now().toString(),
-        name,
-        studentId,
-        email,
-        password: password || 'pass123',
-        photo,
-        branch,
-      };
-      setStudents([...allStudents, newStudent]);
-      
-      // Bug fix: Automatically enroll the new student in all existing courses of their branch.
-      setCourses(prevCourses => 
-        prevCourses.map(course => 
-          course.branch === newStudent.branch 
-            ? { ...course, studentIds: [...course.studentIds, newStudent.id] }
-            : course
-        )
-      );
+    try {
+      if (currentStudent) {
+        const updatedStudent = { ...currentStudent, name, studentId, email, password, photo, branch };
+        // Optimistic update
+        setStudents(allStudents.map(s => s.id === currentStudent.id ? updatedStudent : s));
+        
+        // API call
+        await api.updateStudent(currentStudent.id, updatedStudent);
+      } else {
+        const newStudent: Student = {
+          id: Date.now().toString(),
+          name,
+          studentId,
+          email,
+          password: password || 'pass123',
+          photo,
+          branch,
+        };
+        
+        // Optimistic update
+        setStudents([...allStudents, newStudent]);
+        
+        // API call
+        const created = await api.createStudent(newStudent);
+        
+        // Update with real ID from backend
+        if (created && (created.id || created._id)) {
+            const realId = created.id || created._id;
+            setStudents(prev => prev.map(s => s.id === newStudent.id ? { ...s, id: realId } : s));
+            
+            // Update course enrollments with real ID
+            setCourses(prevCourses => 
+                prevCourses.map(course => 
+                  course.branch === newStudent.branch 
+                    ? { ...course, studentIds: [...course.studentIds.filter(id => id !== newStudent.id), realId] }
+                    : course
+                )
+            );
+        } else {
+             // Fallback if API doesn't return ID immediately (shouldn't happen but safe to keep temp ID locally)
+             // But we still need to enroll them
+             setCourses(prevCourses => 
+                prevCourses.map(course => 
+                  course.branch === newStudent.branch 
+                    ? { ...course, studentIds: [...course.studentIds, newStudent.id] }
+                    : course
+                )
+            );
+        }
+      }
+      closeModal();
+    } catch (error) {
+      console.error("Failed to save student:", error);
+      alert("Failed to save student. Please check your connection.");
+      // In a real app, we would revert the optimistic update here
     }
-    closeModal();
   };
   
   const openDeleteModal = (student: Student) => {
@@ -386,21 +419,32 @@ const StudentManager: React.FC<StudentManagerProps> = ({ students: allStudents, 
     setIsDeleteModalOpen(false);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!studentToDelete) return;
     
-    // Data integrity fix: Also unenroll from courses and clean up attendance
-    setCourses(prevCourses => prevCourses.map(course => ({
-        ...course,
-        studentIds: course.studentIds.filter(id => id !== studentToDelete.id)
-    })));
-    setAttendance(prevAttendance => prevAttendance.map(record => ({
-        ...record,
-        presentStudentIds: record.presentStudentIds.filter(id => id !== studentToDelete.id)
-    })));
+    try {
+        // Optimistic update
+        setStudents(allStudents.filter(s => s.id !== studentToDelete.id));
+        
+        // Data integrity fix: Also unenroll from courses and clean up attendance
+        setCourses(prevCourses => prevCourses.map(course => ({
+            ...course,
+            studentIds: course.studentIds.filter(id => id !== studentToDelete.id)
+        })));
+        setAttendance(prevAttendance => prevAttendance.map(record => ({
+            ...record,
+            presentStudentIds: record.presentStudentIds.filter(id => id !== studentToDelete.id)
+        })));
 
-    setStudents(allStudents.filter(s => s.id !== studentToDelete.id));
-    closeDeleteModal();
+        // API call
+        await api.deleteStudent(studentToDelete.id);
+        
+        closeDeleteModal();
+    } catch (error) {
+        console.error("Failed to delete student:", error);
+        alert("Failed to delete student.");
+        // Revert would go here
+    }
   };
 
   const handleCsvFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -408,7 +452,7 @@ const StudentManager: React.FC<StudentManagerProps> = ({ students: allStudents, 
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       setIsImportModalOpen(false);
       const csvText = event.target?.result as string;
       if (!csvText) {
@@ -477,7 +521,28 @@ const StudentManager: React.FC<StudentManagerProps> = ({ students: allStudents, 
       });
 
       if (newStudents.length > 0) {
+        // Optimistic update
         setStudents(prev => [...prev, ...newStudents]);
+        
+        // API calls
+        try {
+            // Process in chunks of 5 to avoid overwhelming the server
+            const chunkSize = 5;
+            for (let i = 0; i < newStudents.length; i += chunkSize) {
+                const chunk = newStudents.slice(i, i + chunkSize);
+                await Promise.all(chunk.map(async (student) => {
+                    try {
+                        const created = await api.createStudent(student);
+                        // Update with real ID
+                        setStudents(prev => prev.map(s => s.studentId === student.studentId ? { ...s, id: created._id || created.id } : s));
+                    } catch (err) {
+                        console.error(`Failed to sync imported student ${student.name}`, err);
+                    }
+                }));
+            }
+        } catch (err) {
+            console.error("Error during bulk import sync:", err);
+        }
       }
       
       setImportResult({

@@ -5,15 +5,19 @@
 
 import { getApiUrl } from '../utils/config';
 
+// Dynamic API URL getter - always gets the latest discovered URL
 export const API_URL = getApiUrl();
 
-// Helper function for API calls
+// Helper function for API calls - uses dynamic URL
 async function apiCall<T>(endpoint: string, options?: RequestInit): Promise<T> {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-    const response = await fetch(`${API_URL}${endpoint}`, {
+    // Always get the latest API URL
+    const currentApiUrl = getApiUrl();
+    
+    const response = await fetch(`${currentApiUrl}${endpoint}`, {
       headers: {
         'Content-Type': 'application/json',
         ...options?.headers,

@@ -3,6 +3,7 @@ import { Course, Student, Branch, AttendanceRecord } from '../types';
 import { PlusIcon, TrashIcon, PencilIcon, ArrowUpTrayIcon, EllipsisVerticalIcon, UserGroupIcon } from './icons';
 import Modal from './Modal';
 import ImportSummaryModal from './ImportSummaryModal';
+import * as api from '../services/apiService';
 
 interface CourseManagerProps {
   courses: Course[];
@@ -91,30 +92,47 @@ const CourseManager: React.FC<CourseManagerProps> = ({ courses: allCourses, setC
     setActionsMenuCourseId(prevId => (prevId === courseId ? null : courseId));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Bug fix: Automatically enroll all students from the current teacher's branch
     const studentsInCurrentBranch = students.filter(s => s.branch === branch);
     const allStudentIdsInBranch = studentsInCurrentBranch.map(s => s.id);
 
-    if (currentCourse) {
-      setCourses(allCourses.map(c =>
-        c.id === currentCourse.id
-          ? { ...c, name, studentIds: allStudentIdsInBranch, branch }
-          : c
-      ));
-    } else {
-      const newCourse: Course = {
-        id: Date.now().toString(),
-        name,
-        code: generateCourseCode(name),
-        studentIds: allStudentIdsInBranch,
-        branch,
-      };
-      setCourses([...allCourses, newCourse]);
+    try {
+      if (currentCourse) {
+        const updatedCourse = { ...currentCourse, name, studentIds: allStudentIdsInBranch, branch };
+        // Optimistic update
+        setCourses(allCourses.map(c => c.id === currentCourse.id ? updatedCourse : c));
+        
+        // API call
+        await api.updateCourse(currentCourse.id, updatedCourse);
+      } else {
+        const newCourse: Course = {
+          id: Date.now().toString(),
+          name,
+          code: generateCourseCode(name),
+          studentIds: allStudentIdsInBranch,
+          branch,
+        };
+        
+        // Optimistic update
+        setCourses([...allCourses, newCourse]);
+        
+        // API call
+        const created = await api.createCourse(newCourse);
+        
+        // Update with real ID
+        if (created && (created.id || created._id)) {
+            const realId = created.id || created._id;
+            setCourses(prev => prev.map(c => c.id === newCourse.id ? { ...c, id: realId } : c));
+        }
+      }
+      closeModal();
+    } catch (error) {
+      console.error("Failed to save course:", error);
+      alert("Failed to save course.");
     }
-    closeModal();
   };
   
   const openDeleteModal = (course: Course) => {
@@ -128,13 +146,22 @@ const CourseManager: React.FC<CourseManagerProps> = ({ courses: allCourses, setC
     setIsDeleteModalOpen(false);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!courseToDelete) return;
-    // Data integrity fix: Also delete associated attendance records
-    setAttendance(prevAttendance => prevAttendance.filter(record => record.courseId !== courseToDelete.id));
-
-    setCourses(allCourses.filter(c => c.id !== courseToDelete.id));
-    closeDeleteModal();
+    
+    try {
+        // Optimistic update
+        setAttendance(prevAttendance => prevAttendance.filter(record => record.courseId !== courseToDelete.id));
+        setCourses(allCourses.filter(c => c.id !== courseToDelete.id));
+        
+        // API call
+        await api.deleteCourse(courseToDelete.id);
+        
+        closeDeleteModal();
+    } catch (error) {
+        console.error("Failed to delete course:", error);
+        alert("Failed to delete course.");
+    }
   };
   
   const handleCsvFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
