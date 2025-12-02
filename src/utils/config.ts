@@ -87,16 +87,18 @@ const buildCandidateUrls = (): string[] => {
     urls.add(candidate.replace(/\/$/, ''));
   };
 
-  // Localhost defaults (covers both common backend ports)
-  addUrl('http://localhost:5001/api');
-  addUrl('http://127.0.0.1:5001/api');
-  addUrl('http://localhost:5005/api');
-  addUrl('http://127.0.0.1:5005/api');
+  // Localhost defaults (covers known backend ports)
+  const ports = [5001, 5005, 5010];
+  for (const port of ports) {
+    addUrl(`http://localhost:${port}/api`);
+    addUrl(`http://127.0.0.1:${port}/api`);
+  }
 
   if (hasWindow && window.location.hostname) {
     const host = window.location.hostname;
-    addUrl(`http://${host}:5001/api`);
-    addUrl(`http://${host}:5005/api`);
+    for (const port of ports) {
+      addUrl(`http://${host}:${port}/api`);
+    }
   }
 
   return Array.from(urls);
@@ -147,7 +149,7 @@ export const discoverApiUrl = async (onStatus?: (status: string) => void): Promi
     updateStatus(`Environment URL unreachable. Falling back to discovery.`);
   }
 
-  updateStatus(`Scanning common local URLs...`);
+  updateStatus(`Scanning common local URLs (ports 5001, 5005, 5010)...`);
   const candidateUrls = buildCandidateUrls();
   const discovered = await tryMultipleUrls(candidateUrls, 2000);
 

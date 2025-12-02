@@ -6,6 +6,7 @@ from flask_cors import CORS
 import json
 import os
 from typing import Dict, Any, List
+import errno
 from dotenv import load_dotenv
 import google.generativeai as genai
 import database as db
@@ -458,6 +459,42 @@ def chat():
         return jsonify({"error": str(e)}), 500
 
 
+def build_port_candidates() -> List[int]:
+    """Return ordered list of ports to try for the backend server."""
+    ports: List[int] = []
+
+    # Allow explicit comma-separated override (e.g. PORTS="7000,7001")
+    env_ports = os.getenv('PORTS')
+    if env_ports:
+        for value in env_ports.split(','):
+            value = value.strip()
+            if not value:
+                continue
+            try:
+                port = int(value)
+            except ValueError:
+                continue
+            if port not in ports:
+                ports.append(port)
+
+    # Always consider the single PORT value first
+    primary_port = os.getenv('PORT')
+    if primary_port:
+        try:
+            port = int(primary_port)
+            if port not in ports:
+                ports.insert(0, port)
+        except ValueError:
+            pass
+
+    # Fallback ports we know the frontend scans for
+    for fallback in (5001, 5005, 5010):
+        if fallback not in ports:
+            ports.append(fallback)
+
+    return ports
+
+
 if __name__ == '__main__':
     # Initialize MongoDB
     try:
@@ -477,16 +514,27 @@ if __name__ == '__main__':
         print(f"⚠ Unable to validate Gemini connection: {error}")
         print("  Verify GEMINI_API_KEY and internet connectivity.")
 
-    # Run Flask app with error handling
-    port = int(os.getenv('PORT', 5001))
-    print(f"\n🚀 Starting Flask backend on port {port}...")
-    print(f"   Access at: http://0.0.0.0:{port}/api/health")
+    # Run Flask app with port fallbacks
+    port_candidates = build_port_candidates()
+    print("\n🔌 Port candidates:", ', '.join(str(p) for p in port_candidates))
 
-    try:
-        app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
-    except KeyboardInterrupt:
-        print("\n✓ Backend stopped by user")
-    except Exception as e:
-        print(f"\n❌ Backend error: {e}")
-        import sys
-        sys.exit(1)
+    for port in port_candidates:
+        print(f"\n🚀 Starting Flask backend on port {port}...")
+        print(f"   Access at: http://0.0.0.0:{port}/api/health")
+        try:
+            app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
+            break  # app.run blocks; reaching here means a clean shutdown
+        except KeyboardInterrupt:
+            print("\n✓ Backend stopped by user")
+            break
+        except OSError as error:
+            if getattr(error, 'errno', None) in (errno.EADDRINUSE,) or 'Address already in use' in str(error):
+                print(f"⚠ Port {port} is busy. Trying next option...")
+                continue
+            raise
+        except Exception as error:  # pragma: no cover - defensive
+            print(f"\n❌ Backend error: {error}")
+            import sys
+            sys.exit(1)
+    else:
+        print("\n❌ Unable to bind to any configured port. Please free one of these ports and retry.")
