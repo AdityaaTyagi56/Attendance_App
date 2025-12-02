@@ -1,13 +1,13 @@
 """
-Flask backend with MongoDB integration and Ollama Llama 3
+Flask backend with MongoDB integration and Gemini 2.5 Flash
 """
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import requests
 import json
 import os
 from typing import Dict, Any, List
 from dotenv import load_dotenv
+import google.generativeai as genai
 import database as db
 
 # Load environment variables
@@ -15,93 +15,73 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# Configure CORS - Allow all origins for mobile app
-# Capacitor apps use capacitor://localhost and ionic://localhost
+# Configure CORS - Allow all origins for development and mobile apps
 CORS(app, resources={
     r"/api/*": {
-        "origins": [
-            "http://localhost:5173", 
-            "http://localhost:3000", 
-            "http://localhost:3001", 
-            "http://192.168.0.217:3000", 
-            "http://192.168.0.217:3001",
-            "http://172.16.201.77:3000",
-            "http://172.16.201.77:3001",
-            "http://172.16.204.75:3000",
-            "http://172.16.204.75:3001",
-            "capacitor://localhost",
-            "ionic://localhost",
-            "http://localhost"
-        ],
+        "origins": "*",
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization"],
         "supports_credentials": False
     }
 })
 
-# Additional CORS for root path
-@app.after_request
-def after_request(response):
-    origin = request.headers.get('Origin')
-    # Allow Capacitor and local origins
-    if origin and (origin.startswith('capacitor://') or 
-                   origin.startswith('ionic://') or 
-                   origin.startswith('http://localhost') or
-                   origin.startswith('http://192.168.') or
-                   origin.startswith('http://172.16.') or
-                   origin.startswith('http://10.')):
-        response.headers.add('Access-Control-Allow-Origin', origin)
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-        response.headers.add('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
-        response.headers.add('Access-Control-Allow-Credentials', 'false')
-    return response
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
 
-# Ollama configuration
-OLLAMA_URL = os.getenv('OLLAMA_URL', 'http://localhost:11434')
-OLLAMA_MODEL = os.getenv('OLLAMA_MODEL', 'llama3')
+if not GEMINI_API_KEY:
+    raise RuntimeError('GEMINI_API_KEY is not set. Add it to backend/.env or your environment.')
+
+genai.configure(api_key=GEMINI_API_KEY)
+gemini_model = genai.GenerativeModel(GEMINI_MODEL)
 
 
-def call_ollama(prompt: str, temperature: float = 0.2, max_tokens: int = 1024) -> str:
-    """Call Ollama API and return the generated text"""
+def call_gemini(prompt: str, temperature: float = 0.2, max_tokens: int = 1024) -> str:
+    """Call Gemini API and return the generated text"""
     try:
-        print(f"[Ollama] Calling model {OLLAMA_MODEL} with prompt length: {len(prompt)} chars")
-        response = requests.post(
-            f"{OLLAMA_URL}/api/generate",
-            json={
-                "model": OLLAMA_MODEL,
-                "prompt": prompt,
-                "temperature": temperature,
-                "stream": False,
-                "options": {
-                    "num_predict": max_tokens,
-                    "num_ctx": 2048,  # Context window
-                    "num_thread": 4   # Use 4 threads for faster generation
-                }
-            },
-            timeout=180  # Increased to 3 minutes
-        )
-        response.raise_for_status()
+        print(f"[Gemini] Calling model {GEMINI_MODEL} with prompt length: {len(prompt)} chars")
         
-        data = response.json()
-        result = data.get('response', '')
-        print(f"[Ollama] Response received: {len(result)} chars")
-        return result
-    except requests.exceptions.Timeout as e:
-        error_msg = f"Ollama timeout after 180 seconds: {str(e)}"
-        print(f"[Ollama] {error_msg}")
-        raise Exception("Ollama is taking too long to respond. Try using a smaller/faster model.")
-    except requests.exceptions.ConnectionError as e:
-        error_msg = f"Cannot connect to Ollama at {OLLAMA_URL}"
-        print(f"[Ollama] {error_msg}: {e}")
-        raise Exception(f"Ollama service not reachable. Make sure it's running: ollama serve")
-    except requests.exceptions.RequestException as e:
-        error_msg = f"Error calling Ollama: {str(e)}"
-        print(f"[Ollama] {error_msg}")
-        raise Exception(f"Failed to call Ollama: {str(e)}")
+        response = gemini_model.generate_content(
+            prompt,
+            generation_config=genai.GenerationConfig(
+                temperature=temperature,
+                max_output_tokens=max_tokens,
+            ),
+        )
+
+        text_response = ''
+
+        # Extract text from candidates - handle empty parts list properly
+        for candidate in getattr(response, 'candidates', []) or []:
+            content = getattr(candidate, 'content', None)
+            if not content:
+                continue
+            parts = getattr(content, 'parts', []) or []
+            for part in parts:
+                part_text = getattr(part, 'text', '')
+                if part_text:
+                    text_response += part_text
+            if text_response:
+                break
+
+        # Fallback to response.text if available
+        if not text_response:
+            try:
+                text_response = response.text or ''
+            except Exception:
+                pass
+
+        if not text_response:
+            print(f"[Gemini] Empty response. Candidates: {len(getattr(response, 'candidates', []))}")
+            if hasattr(response, 'candidates') and response.candidates:
+                for i, cand in enumerate(response.candidates):
+                    print(f"[Gemini] Candidate {i} finish_reason: {getattr(cand, 'finish_reason', 'unknown')}")
+            raise Exception('Received empty response from Gemini')
+
+        print(f"[Gemini] Response received: {len(text_response)} chars")
+        return text_response.strip()
     except Exception as e:
-        error_msg = f"Unexpected error: {str(e)}"
-        print(f"[Ollama] {error_msg}")
-        raise
+        print(f"[Gemini] Error: {e}")
+        raise Exception(f"Failed to call Gemini: {str(e)}")
 
 
 @app.route('/', methods=['GET'])
@@ -119,20 +99,13 @@ def index():
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
-    try:
-        response = requests.get(f"{OLLAMA_URL}/api/tags", timeout=5)
-        ollama_status = "ok" if response.ok else "error"
-    except:
-        ollama_status = "unreachable"
-    
     mongodb_status = "ok" if db.db is not None else "disconnected"
-    
+
     return jsonify({
         "status": "ok",
-        "ollama_status": ollama_status,
-        "mongodb_status": mongodb_status,
-        "ollama_url": OLLAMA_URL,
-        "model": OLLAMA_MODEL
+        "ai_status": "ok",
+        "ai_provider": GEMINI_MODEL,
+        "mongodb_status": mongodb_status
     })
 
 
@@ -347,7 +320,7 @@ Raw Attendance Data (present student IDs per date):
 
 Return strictly the JSON object described above. No additional text."""
         
-        response_text = call_ollama(prompt, temperature=0.0, max_tokens=800)
+        response_text = call_gemini(prompt, temperature=0.0, max_tokens=800)
         
         try:
             if '```json' in response_text:
@@ -415,7 +388,7 @@ Course-specific percentages:
 
 Keep tone positive and encouraging. Do not exceed 3 sentences."""
         
-        response_text = call_ollama(prompt, temperature=0.3, max_tokens=200)
+        response_text = call_gemini(prompt, temperature=0.3, max_tokens=500)
         return jsonify({"summary": response_text.strip()})
         
     except KeyError as e:
@@ -435,7 +408,7 @@ def generate_attendance_goal():
         
         prompt = f"""You are a motivational academic coach. For {student_name} in {course_name} with current attendance {current_percentage}%, suggest a realistic attendance goal for the next month and give 2-3 short actionable tips. Keep under 100 words and format using Markdown with a bulleted list for tips."""
         
-        response_text = call_ollama(prompt, temperature=0.4, max_tokens=200)
+        response_text = call_gemini(prompt, temperature=0.4, max_tokens=500)
         return jsonify({"goal": response_text.strip()})
         
     except KeyError as e:
@@ -460,7 +433,7 @@ def predict_attendance_performance():
 
 Provide a one-sentence prediction of likely end-of-semester attendance if this pattern continues, and one-sentence observation about recent performance. Keep under 75 words."""
         
-        response_text = call_ollama(prompt, temperature=0.2, max_tokens=150)
+        response_text = call_gemini(prompt, temperature=0.2, max_tokens=500)
         return jsonify({"prediction": response_text.strip()})
         
     except KeyError as e:
@@ -476,7 +449,7 @@ def chat():
         data = request.json
         prompt = data['prompt']
         
-        response_text = call_ollama(prompt, temperature=0.7, max_tokens=300)
+        response_text = call_gemini(prompt, temperature=0.7, max_tokens=300)
         return jsonify({"response": response_text.strip()})
         
     except KeyError as e:
@@ -490,30 +463,26 @@ if __name__ == '__main__':
     try:
         db_connected = db.init_db()
         if db_connected:
-            print(f"✓ Connected to MongoDB")
+            print("✓ Connected to MongoDB")
         else:
-            print(f"⚠ Warning: MongoDB connection failed")
+            print("⚠ Warning: MongoDB connection failed")
     except Exception as e:
         print(f"⚠ Warning: MongoDB initialization error: {e}")
-    
-    # Check if Ollama is running
+
+    # Validate Gemini configuration
     try:
-        response = requests.get(f"{OLLAMA_URL}/api/tags", timeout=5)
-        print(f"✓ Connected to Ollama at {OLLAMA_URL}")
-        print(f"✓ Using model: {OLLAMA_MODEL}")
-    except Exception as e:
-        print(f"⚠ Warning: Cannot connect to Ollama at {OLLAMA_URL}")
-        print("  Make sure Ollama is running: ollama serve")
-        print(f"  And the model is available: ollama pull {OLLAMA_MODEL}")
-    
+        gemini_model.count_tokens("health check")
+        print(f"✓ Gemini model ready: {GEMINI_MODEL}")
+    except Exception as error:
+        print(f"⚠ Unable to validate Gemini connection: {error}")
+        print("  Verify GEMINI_API_KEY and internet connectivity.")
+
     # Run Flask app with error handling
     port = int(os.getenv('PORT', 5001))
     print(f"\n🚀 Starting Flask backend on port {port}...")
     print(f"   Access at: http://0.0.0.0:{port}/api/health")
-    
+
     try:
-        # Disable debug mode to allow background execution
-        # Use threaded=True for better stability
         app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
     except KeyboardInterrupt:
         print("\n✓ Backend stopped by user")

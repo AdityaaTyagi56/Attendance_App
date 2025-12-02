@@ -3,7 +3,9 @@
  * Handles all CRUD operations with MongoDB via Flask backend
  */
 
-export const API_URL = import.meta.env.VITE_API_URL || 'http://172.16.204.75:5001/api';
+import { getApiUrl } from '../utils/config';
+
+export const API_URL = getApiUrl();
 
 // Helper function for API calls
 async function apiCall<T>(endpoint: string, options?: RequestInit): Promise<T> {
@@ -117,7 +119,8 @@ export async function deleteAttendance(recordId: string) {
 export async function checkHealth() {
   return apiCall<{
     status: string;
-    ollama_status: string;
+    ai_status: string;
+    ai_provider?: string;
     mongodb_status: string;
   }>('/health');
 }

@@ -110,12 +110,9 @@ When using the app on your phone, make sure:
    cd backend
    python3 app_mongodb.py
    ```
-3. **Ollama is running:**
-   ```bash
-   ollama serve
-   ```
+3. **Gemini credentials are configured** via `backend/.env` or exported environment variables.
 
-The app will connect to `http://10.25.196.34:5001/api` to use the AI features.
+The app will connect to `http://10.25.196.34:5001/api` to use the AI features through Gemini.
 
 ## Troubleshooting
 

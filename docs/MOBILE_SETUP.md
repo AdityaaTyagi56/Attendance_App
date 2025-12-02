@@ -55,16 +55,12 @@ Before opening the app on your phone, start the backend:
 # Terminal 1: Start backend
 cd backend
 python3 app_mongodb.py
-
-# Terminal 2 (if needed): Start Ollama (if not already running)
-ollama serve
 ```
 
 You should see:
 ```
 ✓ Connected to MongoDB
-✓ Connected to Ollama at http://localhost:11434
-✓ Using model: llama3:latest
+✓ Gemini API ready (gemini-2.5-flash)
 🚀 Starting Flask backend on port 5001...
  * Running on http://10.25.196.34:5001
 ```
@@ -83,7 +79,7 @@ You should see:
 ```json
 {
   "status": "ok",
-  "ollama_status": "ok",
+   "gemini_status": "ok",
   "mongodb_status": "ok"
 }
 ```
@@ -120,9 +116,9 @@ Your computer's IP may change when you reconnect to WiFi. To update:
 - ✓ Firewall blocking port 5001? (Temporarily disable to test)
 
 ### "AI features not working"
-- ✓ Ollama running? `ollama list` to check
-- ✓ Check backend logs for Ollama connection
-- ✓ Test directly: `curl http://localhost:11434/api/tags`
+- ✓ `GEMINI_API_KEY` set in `backend/.env`?
+- ✓ Backend logs mention successful Gemini initialization?
+- ✓ Ensure the configured Gemini model matches the enabled models for your key
 
 ### App installs but won't open
 - ✓ Check Android version (needs Android 5.0+)

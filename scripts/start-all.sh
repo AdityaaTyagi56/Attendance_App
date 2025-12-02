@@ -3,27 +3,31 @@
 # Start Both Frontend and Backend
 # This script manages both services with proper logging and error handling
 
-PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
-BACKEND_LOG="$PROJECT_DIR/backend.log"
-FRONTEND_LOG="$PROJECT_DIR/frontend.log"
-BACKEND_PID_FILE="$PROJECT_DIR/backend.pid"
-FRONTEND_PID_FILE="$PROJECT_DIR/frontend.pid"
+PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+BACKEND_LOG="$PROJECT_DIR/logs/backend.log"
+FRONTEND_LOG="$PROJECT_DIR/logs/frontend.log"
+BACKEND_PID_FILE="$PROJECT_DIR/logs/backend.pid"
+FRONTEND_PID_FILE="$PROJECT_DIR/logs/frontend.pid"
+ENV_FILE="$PROJECT_DIR/backend/.env"
+
+# Load backend environment variables so GEMINI_* settings are available
+if [ -f "$ENV_FILE" ]; then
+    set -a
+    # shellcheck source=/dev/null
+    source "$ENV_FILE"
+    set +a
+fi
 
 echo "===================================="
 echo "IIIT-NR Attendance System Launcher"
 echo "===================================="
 echo ""
 
-# Check/Start Ollama
-echo "Checking Ollama Service..."
-if ! lsof -ti:11434 > /dev/null 2>&1; then
-    echo "Ollama is not running. Starting Ollama..."
-    nohup ollama serve > /dev/null 2>&1 &
-    echo "Waiting for Ollama to initialize..."
-    sleep 5
-    echo "✓ Ollama started"
+# Verify Gemini API key
+if [ -z "$GEMINI_API_KEY" ]; then
+    echo "⚠ GEMINI_API_KEY is not set. AI features will fail until you export it."
 else
-    echo "✓ Ollama is already running"
+    echo "✓ GEMINI_API_KEY detected"
 fi
 
 # Kill existing processes on ports
@@ -49,15 +53,19 @@ BACKEND_PID=$!
 echo $BACKEND_PID > "$BACKEND_PID_FILE"
 echo "Backend started with PID: $BACKEND_PID"
 
-# Wait for backend to start
-sleep 3
-
-# Verify backend is running
-if ! lsof -ti:5001 > /dev/null 2>&1; then
-    echo "❌ ERROR: Backend failed to start!"
-    echo "Check logs: tail -f $BACKEND_LOG"
-    exit 1
-fi
+# Wait for backend to start (up to 30 seconds)
+echo "Waiting for backend to initialize..."
+MAX_RETRIES=30
+COUNT=0
+while ! lsof -ti:5001 > /dev/null 2>&1; do
+    sleep 1
+    COUNT=$((COUNT+1))
+    if [ $COUNT -ge $MAX_RETRIES ]; then
+        echo "❌ ERROR: Backend failed to start after $MAX_RETRIES seconds!"
+        echo "Check logs: tail -f $BACKEND_LOG"
+        exit 1
+    fi
+done
 echo "✓ Backend is running on port 5001"
 
 # Start Frontend
@@ -69,15 +77,19 @@ FRONTEND_PID=$!
 echo $FRONTEND_PID > "$FRONTEND_PID_FILE"
 echo "Frontend started with PID: $FRONTEND_PID"
 
-# Wait for frontend to start
-sleep 5
-
-# Verify frontend is running
-if ! lsof -ti:3001 > /dev/null 2>&1; then
-    echo "❌ ERROR: Frontend failed to start!"
-    echo "Check logs: tail -f $FRONTEND_LOG"
-    exit 1
-fi
+# Wait for frontend to start (up to 30 seconds)
+echo "Waiting for frontend to initialize..."
+MAX_RETRIES=30
+COUNT=0
+while ! lsof -ti:3001 > /dev/null 2>&1; do
+    sleep 1
+    COUNT=$((COUNT+1))
+    if [ $COUNT -ge $MAX_RETRIES ]; then
+        echo "❌ ERROR: Frontend failed to start after $MAX_RETRIES seconds!"
+        echo "Check logs: tail -f $FRONTEND_LOG"
+        exit 1
+    fi
+done
 echo "✓ Frontend is running on port 3001"
 
 # Get network IP

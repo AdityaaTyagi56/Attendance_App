@@ -3,11 +3,11 @@
 # Start Frontend with Auto-Restart
 # This script keeps the frontend running even if it crashes
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/.."
 
 while true; do
     echo "[$(date)] Starting frontend server on port 3001..."
-    npm run dev -- --host 0.0.0.0 --port 3001 2>&1 | tee -a frontend.log
+    npm run dev -- --host 0.0.0.0 --port 3001 2>&1 | tee -a logs/frontend.log
     EXIT_CODE=$?
     
     if [ $EXIT_CODE -eq 0 ]; then

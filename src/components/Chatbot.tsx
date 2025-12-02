@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ChatBubbleIcon, XIcon, PaperAirplaneIcon } from './icons';
 import ReactMarkdown from 'react-markdown';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://192.168.0.217:5001/api';
+import { getApiUrl } from '../utils/config';
+
+const API_BASE_URL = getApiUrl();
 console.log('[Chatbot] API Base URL:', API_BASE_URL);
 
 const SYSTEM_PROMPT = `You are a helpful AI assistant for the IIIT-Naya Raipur Attendance Portal. Your purpose is to guide users and answer questions about the application's features and how to use them.
@@ -145,7 +147,7 @@ const Chatbot: React.FC = () => {
           <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-transparent">
             {messages.map((msg, index) => (
               <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-xs md:max-w-sm py-2 px-4 shadow-sm ${msg.role === 'user' ? 'rounded-2xl rounded-br-lg bg-brand text-on-surface' : 'rounded-2xl rounded-bl-lg bg-surface-variant/80 dark:bg-black/20 text-on-surface dark:text-on-surface-dark'}`}>
+                <div className={`max-w-xs md:max-w-sm py-2 px-4 shadow-sm ${msg.role === 'user' ? 'rounded-2xl rounded-br-lg bg-brand text-on-surface' : 'rounded-2xl rounded-bl-lg surface-variant-80 text-on-surface dark:text-on-surface-dark'}`}>
                   <MarkdownRenderer text={msg.text} role={msg.role} />
                 </div>
               </div>

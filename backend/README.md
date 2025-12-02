@@ -1,27 +1,20 @@
 # Flask Backend for IIIT-NR Attendance App
 
-This Flask backend integrates Ollama Llama 3 for AI-powered attendance analysis and provides API endpoints for both web and mobile clients.
+This Flask backend uses Google's Gemini 2.5 Flash model for AI-powered attendance analysis and exposes API endpoints for both web and mobile clients.
 
 ## Prerequisites
 
 1. **Python 3.8+** installed
-2. **Ollama** installed and running with Llama 3 model
+2. **Google AI Studio API Key** with access to Gemini 2.5 Flash
 
 ## Setup Instructions
 
-### 1. Install Ollama and Llama 3
+### 1. Configure Gemini via Google AI Studio
 
-```bash
-# Install Ollama (if not already installed)
-# macOS/Linux:
-curl -fsSL https://ollama.com/install.sh | sh
-
-# Pull Llama 3 model
-ollama pull llama3
-
-# Start Ollama server (if not running)
-ollama serve
-```
+1. Visit [Google AI Studio](https://aistudio.google.com/)
+2. Create an API key (make sure billing is enabled on your project)
+3. Copy the generated key—you will store it in `backend/.env` as `GEMINI_API_KEY`
+4. The default model used is `gemini-2.5-flash`, but you may override it with `GEMINI_MODEL`
 
 ### 2. Set Up Python Virtual Environment
 
@@ -46,9 +39,11 @@ pip install -r requirements.txt
 
 Edit the `.env` file if needed:
 ```env
-OLLAMA_URL=http://localhost:11434
-OLLAMA_MODEL=llama3
+GEMINI_API_KEY=your-google-ai-studio-key
+GEMINI_MODEL=gemini-2.5-flash
 PORT=5000
+MONGODB_URI=mongodb://localhost:27017/
+MONGODB_DB_NAME=iiit_attendance
 ```
 
 ### 4. Run the Backend
@@ -66,7 +61,7 @@ The server will start on `http://localhost:5000`
 ```http
 GET /api/health
 ```
-Check if the backend and Ollama are running properly.
+Check if the backend, MongoDB, and Gemini integration are healthy.
 
 ### Generate Attendance Summary
 ```http
@@ -183,23 +178,23 @@ When testing on a physical mobile device or emulator:
    ```
 
 2. Update `requirements.txt`:
-   ```
-   Flask==3.0.0
-   flask-cors==4.0.0
-   requests==2.31.0
-   gunicorn==21.2.0
-   ```
+```
+Flask==3.0.0
+flask-cors==4.0.0
+google-generativeai==0.8.2
+gunicorn==21.2.0
+```
 
 3. Set environment variables in your hosting platform:
-   - `OLLAMA_URL`: URL of your Ollama instance (can be self-hosted)
-   - `OLLAMA_MODEL`: `llama3`
+  - `GEMINI_API_KEY`: API key from Google AI Studio
+  - `GEMINI_MODEL`: `gemini-2.5-flash` (or another Gemini model)
 
 ## Troubleshooting
 
-### Ollama Not Connected
-- Ensure Ollama is running: `ollama serve`
-- Check if Llama 3 is available: `ollama list`
-- Verify OLLAMA_URL in `.env` is correct
+### Gemini Not Responding
+- Verify `GEMINI_API_KEY` is set on the machine running the backend
+- Confirm the key has access to Gemini 2.5 Flash inside Google AI Studio
+- Ensure outbound HTTPS traffic to `generativelanguage.googleapis.com` is allowed
 
 ### CORS Errors
 - Update the `CORS` origins in `app.py` to include your frontend URL

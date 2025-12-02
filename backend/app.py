@@ -1,13 +1,18 @@
 """
-Flask backend for IIIT-NR Attendance App with Ollama Llama 3 integration
+Flask backend for IIIT-NR Attendance App with Gemini 2.5 Flash integration
 """
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import requests
 import json
 import os
 from typing import Dict, Any, List
+
+import google.generativeai as genai
+from dotenv import load_dotenv
+
 import database
+
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -20,37 +25,63 @@ CORS(app, resources={
     }
 })
 
-# Ollama configuration
-OLLAMA_URL = os.getenv('OLLAMA_URL', 'http://localhost:11434')
-OLLAMA_MODEL = os.getenv('OLLAMA_MODEL', 'llama3')
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.0-flash')
+
+if not GEMINI_API_KEY:
+    raise RuntimeError('GEMINI_API_KEY is not set. Add it to backend/.env or your environment.')
+
+genai.configure(api_key=GEMINI_API_KEY)
+gemini_model = genai.GenerativeModel(GEMINI_MODEL)
 
 
-def call_ollama(prompt: str, temperature: float = 0.2, max_tokens: int = 1024) -> str:
-    """
-    Call Ollama API and return the generated text
-    """
+def call_gemini(prompt: str, temperature: float = 0.2, max_tokens: int = 1024) -> str:
+    """Call Gemini API and return the generated text"""
     try:
-        response = requests.post(
-            f"{OLLAMA_URL}/api/generate",
-            json={
-                "model": OLLAMA_MODEL,
-                "prompt": prompt,
-                "temperature": temperature,
-                "stream": False,
-                "options": {
-                    "num_predict": max_tokens
-                }
-            },
-            timeout=120
-        )
-        response.raise_for_status()
+        print(f"[Gemini] Calling model {GEMINI_MODEL} with prompt length: {len(prompt)} chars")
         
-        data = response.json()
-        # Ollama returns response in 'response' field
-        return data.get('response', '')
-    except requests.exceptions.RequestException as e:
-        print(f"Error calling Ollama: {e}")
-        raise Exception(f"Failed to call Ollama: {str(e)}")
+        response = gemini_model.generate_content(
+            prompt,
+            generation_config=genai.GenerationConfig(
+                temperature=temperature,
+                max_output_tokens=max_tokens,
+            ),
+        )
+
+        text_response = ''
+
+        # Extract text from candidates - handle empty parts list properly
+        for candidate in getattr(response, 'candidates', []) or []:
+            content = getattr(candidate, 'content', None)
+            if not content:
+                continue
+            parts = getattr(content, 'parts', []) or []
+            for part in parts:
+                part_text = getattr(part, 'text', '')
+                if part_text:
+                    text_response += part_text
+            if text_response:
+                break
+
+        # Fallback to response.text if available
+        if not text_response:
+            try:
+                text_response = response.text or ''
+            except Exception:
+                pass
+
+        if not text_response:
+            print(f"[Gemini] Empty response. Candidates: {len(getattr(response, 'candidates', []))}")
+            if hasattr(response, 'candidates') and response.candidates:
+                for i, cand in enumerate(response.candidates):
+                    print(f"[Gemini] Candidate {i} finish_reason: {getattr(cand, 'finish_reason', 'unknown')}")
+            raise Exception('Received empty response from Gemini')
+
+        print(f"[Gemini] Response received: {len(text_response)} chars")
+        return text_response.strip()
+    except Exception as e:
+        print(f"[Gemini] Error: {e}")
+        raise Exception(f"Failed to call Gemini: {str(e)}")
 
 
 @app.route('/api/chat', methods=['POST'])
@@ -69,7 +100,7 @@ def chat_with_ai():
         if not prompt:
             return jsonify({"error": "Missing prompt"}), 400
             
-        response_text = call_ollama(prompt, temperature=0.7, max_tokens=500)
+        response_text = call_gemini(prompt, temperature=0.7, max_tokens=500)
         return jsonify({"response": response_text.strip()})
         
     except Exception as e:
@@ -80,18 +111,14 @@ def chat_with_ai():
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
-    try:
-        # Check if Ollama is accessible
-        response = requests.get(f"{OLLAMA_URL}/api/tags", timeout=5)
-        ollama_status = "ok" if response.ok else "error"
-    except:
-        ollama_status = "unreachable"
-    
+    ai_status = "ok"
+    mongodb_status = "ok" if getattr(database, 'db', None) is not None else "disconnected"
+
     return jsonify({
         "status": "ok",
-        "ollama_status": ollama_status,
-        "ollama_url": OLLAMA_URL,
-        "model": OLLAMA_MODEL
+        "ai_status": ai_status,
+        "ai_provider": GEMINI_MODEL,
+        "mongodb_status": mongodb_status
     })
 
 
@@ -142,7 +169,7 @@ Raw Attendance Data (present student IDs per date):
 
 Return strictly the JSON object described above. No additional text."""
         
-        response_text = call_ollama(prompt, temperature=0.0, max_tokens=800)
+        response_text = call_gemini(prompt, temperature=0.0, max_tokens=800)
         
         # Try to extract JSON from response
         try:
@@ -369,7 +396,7 @@ Course-specific percentages:
 
 Keep tone positive and encouraging. Do not exceed 3 sentences."""
         
-        response_text = call_ollama(prompt, temperature=0.3, max_tokens=200)
+        response_text = call_gemini(prompt, temperature=0.3, max_tokens=200)
         return jsonify({"summary": response_text.strip()})
         
     except KeyError as e:
@@ -397,7 +424,7 @@ def generate_attendance_goal():
         
         prompt = f"""You are a motivational academic coach. For {student_name} in {course_name} with current attendance {current_percentage}%, suggest a realistic attendance goal for the next month and give 2-3 short actionable tips. Keep under 100 words and format using Markdown with a bulleted list for tips."""
         
-        response_text = call_ollama(prompt, temperature=0.4, max_tokens=200)
+        response_text = call_gemini(prompt, temperature=0.4, max_tokens=200)
         return jsonify({"goal": response_text.strip()})
         
     except KeyError as e:
@@ -430,7 +457,7 @@ def predict_attendance_performance():
 
 Provide a one-sentence prediction of likely end-of-semester attendance if this pattern continues, and one-sentence observation about recent performance. Keep under 75 words."""
         
-        response_text = call_ollama(prompt, temperature=0.2, max_tokens=150)
+        response_text = call_gemini(prompt, temperature=0.2, max_tokens=150)
         return jsonify({"prediction": response_text.strip()})
         
     except KeyError as e:
@@ -440,16 +467,13 @@ Provide a one-sentence prediction of likely end-of-semester attendance if this p
 
 
 if __name__ == '__main__':
-    # Check if Ollama is running
     try:
-        response = requests.get(f"{OLLAMA_URL}/api/tags", timeout=5)
-        print(f"✓ Connected to Ollama at {OLLAMA_URL}")
-        print(f"✓ Using model: {OLLAMA_MODEL}")
-    except:
-        print(f"⚠ Warning: Cannot connect to Ollama at {OLLAMA_URL}")
-        print("  Make sure Ollama is running: ollama serve")
-        print(f"  And the model is available: ollama pull {OLLAMA_MODEL}")
-    
+        gemini_model.count_tokens("health check")
+        print(f"✓ Gemini model ready: {GEMINI_MODEL}")
+    except Exception as error:
+        print(f"⚠ Unable to validate Gemini connection: {error}")
+        print("  Verify GEMINI_API_KEY and internet connectivity.")
+
     # Initialize database
     if database.init_db():
         print("✓ Database initialized successfully")

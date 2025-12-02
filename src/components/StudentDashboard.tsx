@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Student, Course, AttendanceRecord } from '../types';
 import { LogOut, Sun, Moon, ChevronDown, UserCircle, ChevronLeft, ChevronRight, Sparkles, Target, TrendingUp, Clock } from 'lucide-react';
 import SkeletonLoader from './SkeletonLoader';
-import { generateStudentSummary, generateAttendanceGoal, predictAttendancePerformance } from '../services/ollamaService';
+import { generateStudentSummary, generateAttendanceGoal, predictAttendancePerformance } from '../services/geminiService';
 import PhotoViewerModal from './PhotoViewerModal';
 import Modal from './Modal';
 import ReactMarkdown from 'react-markdown';

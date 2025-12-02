@@ -85,7 +85,7 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ students, courses, 
         {courses.length > 0 ? (
           <div className="grid grid-cols-1 gap-4 md:flex md:overflow-x-auto md:pb-4 md:-mb-4 md:-mx-6 md:px-6 md:horizontal-scrollbar">
             {courses.map(course => (
-              <div key={course.id} className="w-full md:w-64 md:flex-shrink-0 bg-surface-variant/50 dark:bg-black/20 rounded-2xl border border-white/10 p-4 flex flex-col justify-between transition-all hover:border-primary/40 hover:-translate-y-1 duration-300">
+              <div key={course.id} className="w-full md:w-64 md:flex-shrink-0 surface-variant-50 rounded-2xl border border-white/10 p-4 flex flex-col justify-between transition-all hover:border-primary/40 hover:-translate-y-1 duration-300">
                 <div>
                   <h4 className="font-bold text-text truncate">{course.name}</h4>
                   <p className="text-xs text-text-secondary font-mono mb-3">{course.code}</p>

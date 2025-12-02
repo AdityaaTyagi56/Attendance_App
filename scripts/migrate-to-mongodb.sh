@@ -22,10 +22,10 @@ echo "3. Go to the Console tab"
 echo "4. Copy and paste the following code:"
 echo ""
 echo "----------------------------------------"
+echo "// Migration Script"
+echo "(async function() {"
+echo "  const API_URL = '$API_URL';"
 cat << 'EOF'
-// Migration Script
-(async function() {
-  const API_URL = 'http://localhost:5001/api';
   
   // Get data from localStorage
   const students = JSON.parse(localStorage.getItem('students') || '[]');

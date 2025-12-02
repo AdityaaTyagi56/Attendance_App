@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -9,8 +8,7 @@
   <meta name="theme-color" content="#000000">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
@@ -19,38 +17,29 @@
       --safe-area-inset-top: env(safe-area-inset-top, 0rem);
       --safe-area-inset-bottom: env(safe-area-inset-bottom, 0rem);
 
-      /* Mustard Yellow, Lime & White Palette */
-      --color-primary: #D4A017;
-      /* Mustard Yellow */
-      --color-primary-light: #E8C547;
-      /* Light Mustard */
-      --color-secondary: #A4D65E;
-      /* Lime Green */
-      --color-accent: #C9E265;
-      /* Light Lime */
-      --color-background: #FFFEF7;
-      /* Off-white/Cream */
+      /* Light Mode Colors */
+      --color-background: #F8FAFC;
       --color-surface: #FFFFFF;
-      --color-text: #3D3D29;
-      /* Dark Olive */
-      --color-text-secondary: #7A7A5C;
-      /* Medium Olive */
+      --color-surface-variant: #F1F5F9;
+      --color-surface-variant-rgb: 241, 245, 249;
+      --color-text: #0F172A;
+      --color-text-secondary: #64748B;
+      --color-primary: #D4AF37;
+      --color-secondary: #8B5CF6;
+      --color-border: rgba(0, 0, 0, 0.1);
     }
 
-    body.dark {
-      --color-background: #2A2A1F;
-      /* Dark Olive */
-      --color-surface: #3D3D29;
-      /* Medium Dark Olive */
-      --color-text: #FFFEF7;
-      /* Off-white */
-      --color-text-secondary: #C9C9B3;
-      /* Light Olive */
-
-      background-color: var(--color-background);
-      background-image:
-        radial-gradient(circle at 15% 50%, rgba(212, 160, 23, 0.15) 0%, transparent 25%),
-        radial-gradient(circle at 85% 30%, rgba(164, 214, 94, 0.15) 0%, transparent 25%);
+    .dark {
+      /* Dark Mode Colors */
+      --color-background: #000000;
+      --color-surface: #1A1A22;
+      --color-surface-variant: #0F0F13;
+      --color-surface-variant-rgb: 15, 15, 19;
+      --color-text: #F0F0F5;
+      --color-text-secondary: #94A3B8;
+      --color-primary: #D4AF37;
+      --color-secondary: #A78BFA;
+      --color-border: rgba(255, 255, 255, 0.1);
     }
 
     body {
@@ -59,50 +48,79 @@
       transition: background-color 0.3s ease, color 0.3s ease;
     }
 
-    /* Modern Scrollbar */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+    body.dark {
+        background-image: radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.15) 0px, transparent 40%),
+                          radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.15) 0px, transparent 40%);
     }
 
+    /* Fancy Font Styles */
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Outfit', sans-serif;
+      letter-spacing: -0.02em;
+    }
+    
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .font-display {
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    /* Glass card effect */
+    .glass-card, .glass {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .dark .glass-card, .dark .glass {
+      background: rgba(26, 26, 34, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Surface variants used for cards and inputs */
+    .surface-variant-50 {
+      background-color: rgba(var(--color-surface-variant-rgb), 0.5);
+    }
+
+    .surface-variant-80 {
+      background-color: rgba(var(--color-surface-variant-rgb), 0.8);
+    }
+    
+    /* Add a more fluid, modern scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
     ::-webkit-scrollbar-track {
       background: transparent;
     }
-
     ::-webkit-scrollbar-thumb {
-      background: rgba(212, 160, 23, 0.4);
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    .horizontal-scrollbar::-webkit-scrollbar {
+      height: 6px;
+    }
+    .horizontal-scrollbar::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.1);
       border-radius: 3px;
     }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(212, 160, 23, 0.6);
+    .horizontal-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+    }
+    .horizontal-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
     }
 
-    /* Glassmorphism Utilities */
-    .glass {
-      background: rgba(255, 254, 247, 0.75);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(212, 160, 23, 0.2);
-    }
-
-    .dark .glass {
-      background: rgba(61, 61, 41, 0.7);
-      border: 1px solid rgba(232, 197, 71, 0.1);
-    }
-
-    .glass-card {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(212, 160, 23, 0.3);
-      box-shadow: 0 4px 30px rgba(212, 160, 23, 0.15);
-    }
-
-    .dark .glass-card {
-      background: rgba(61, 61, 41, 0.65);
-      border: 1px solid rgba(232, 197, 71, 0.15);
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+    body.dark {
+        background-image: radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.15) 0px, transparent 40%),
+                          radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.15) 0px, transparent 40%);
     }
   </style>
   <script>
@@ -111,48 +129,116 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            display: ['Inter', 'sans-serif'],
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            serif: ['Outfit', 'sans-serif'], // Using Outfit as "serif" slot for headings
+            display: ['Space Grotesk', 'sans-serif'],
+          },
+          borderRadius: {
+            '4xl': '2rem', // 32px
+            '5xl': '2.5rem',   // 40px
+            '6xl': '3rem', // 48px
           },
           colors: {
-            primary: { DEFAULT: '#D4A017', light: '#E8C547', dark: '#B8860B' },
-            secondary: { DEFAULT: '#A4D65E', light: '#C9E265', dark: '#8BC34A' },
-            accent: { DEFAULT: '#F5E6A3', light: '#FFF9E6', dark: '#E8D68A' },
-            surface: { DEFAULT: '#FFFFFF', dark: '#3D3D29' },
-            background: { DEFAULT: '#FFFEF7', dark: '#2A2A1F' },
+            'brand': { 
+              'DEFAULT': '#D4AF37', // Gold
+              '50': '#fefdf9', '100': '#fcf9f0', '200': '#f8f2e1', '300': '#f2e9c9',
+              '400': '#e9dbac', '500': '#ddc888', '600': '#c0a762', '700': '#a1884c',
+              '800': '#866f3f', '900': '#705c36', '950': '#42331c'
+            },
+            'primary': {
+              'DEFAULT': 'var(--color-primary)',
+              'light': '#E5C54A',
+              'dark': '#B89530',
+            },
+            'secondary': {
+              'DEFAULT': 'var(--color-secondary)',
+              'light': '#A78BFA',
+              'dark': '#7C3AED',
+            },
+            'background': 'var(--color-background)',
+            'text': {
+              'DEFAULT': 'var(--color-text)',
+              'secondary': 'var(--color-text-secondary)',
+            },
+            'surface': {
+              'DEFAULT': 'var(--color-surface)',
+              'variant': 'var(--color-surface-variant)',
+              'dark': '#1A1A22', 
+              'dark-variant': '#000000',
+            },
+            'on-surface': {
+              'DEFAULT': 'var(--color-text)',
+              'variant': 'var(--color-text-secondary)',
+              'dark': '#F0F0F5',
+              'dark-variant': '#A0A0B0',
+            },
+            'success': '#10b981', 
+            'warning': '#f59e0b', 
+            'danger': '#ef4444', 
+            'border-light': 'var(--color-border)',
+            'border-dark': 'rgba(255,255,255,0.1)',
+          },
+          backdropBlur: {
+             'xl': '24px',
+          },
+          boxShadow: {
+            'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+            'soft': '0 2px 8px 0 rgba(0, 0, 0, 0.05)',
+            'soft-lg': '0 4px 16px 0 rgba(0, 0, 0, 0.07)',
           },
           animation: {
-            'float': 'float 6s ease-in-out infinite',
-            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-            'slide-up': 'slideUp 0.5s ease-out forwards',
             'fade-in': 'fadeIn 0.5s ease-out forwards',
+            'slide-up-fade': 'slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+            'subtle-scale-in': 'subtleScaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+            'slide-in-left': 'slideInLeft 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards',
+            'slide-out-left': 'slideOutLeft 0.3s cubic-bezier(0.5, 0, 0.75, 0) forwards',
+            'view-enter': 'viewEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+            'icon-pop-in': 'iconPopIn 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards',
+            'highlight-present': 'highlight-present 0.75s ease-out',
+            'highlight-absent': 'highlight-absent 0.75s ease-out',
           },
           keyframes: {
-            float: {
-              '0%, 100%': { transform: 'translateY(0)' },
-              '50%': { transform: 'translateY(-10px)' },
-            },
-            slideUp: {
-              '0%': { transform: 'translateY(20px)', opacity: '0' },
-              '100%': { transform: 'translateY(0)', opacity: '1' },
-            },
             fadeIn: {
-              '0%': { opacity: '0' },
-              '100%': { opacity: '1' },
-            }
-          }
+              '0%': { opacity: 0 },
+              '100%': { opacity: 1 },
+            },
+            slideUpFade: {
+              '0%': { opacity: 0, transform: 'translateY(24px)' },
+              '100%': { opacity: 1, transform: 'translateY(0)' },
+            },
+            subtleScaleIn: {
+              '0%': { opacity: 0, transform: 'scale(0.95)' },
+              '100%': { opacity: 1, transform: 'scale(1)' },
+            },
+            slideInLeft: {
+              'from': { transform: 'translateX(-100%)' },
+              'to': { transform: 'translateX(0)' }
+            },
+            slideOutLeft: {
+              'from': { transform: 'translateX(0)' },
+              'to': { transform: 'translateX(-100%)' }
+            },
+            viewEnter: {
+              'from': { opacity: 0, transform: 'translateY(20px) scale(0.98)' },
+              'to': { opacity: 1, transform: 'translateY(0) scale(1)' }
+            },
+            iconPopIn: {
+              '0%': { transform: 'scale(0.5)', opacity: '0' },
+              '60%': { transform: 'scale(1.1)', opacity: '1' },
+              '80%': { transform: 'scale(0.95)' },
+              '100%': { transform: 'scale(1)' }
+            },
+          },
         }
       }
     }
   </script>
   <script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
   <script src="https://unpkg.com/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.js"></script>
-  <link rel="stylesheet" href="/index.css">
+<link rel="stylesheet" href="/index.css">
 </head>
-
 <body class="bg-surface-variant dark:bg-surface-dark-variant font-sans">
   <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
+  <script type="module" src="/src/index.tsx"></script>
 </body>
-
 </html>

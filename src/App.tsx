@@ -198,13 +198,16 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const root = window.document.documentElement;
+    const body = window.document.body;
     const themeColorMeta = document.querySelector('meta[name="theme-color"]');
 
     if (theme === 'dark') {
       root.classList.add('dark');
-      themeColorMeta?.setAttribute('content', '#0F172A');
+      body.classList.add('dark');
+      themeColorMeta?.setAttribute('content', '#000000');
     } else {
       root.classList.remove('dark');
+      body.classList.remove('dark');
       themeColorMeta?.setAttribute('content', '#F8FAFC');
     }
   }, [theme]);

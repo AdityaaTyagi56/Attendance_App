@@ -2,9 +2,9 @@
 
 # Stop All Services
 
-PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
-BACKEND_PID_FILE="$PROJECT_DIR/backend.pid"
-FRONTEND_PID_FILE="$PROJECT_DIR/frontend.pid"
+PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+BACKEND_PID_FILE="$PROJECT_DIR/logs/backend.pid"
+FRONTEND_PID_FILE="$PROJECT_DIR/logs/frontend.pid"
 
 echo "Stopping all services..."
 

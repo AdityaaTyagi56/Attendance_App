@@ -11,14 +11,17 @@ CURRENT_IP=$(ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}' | he
 echo "Current IP: $CURRENT_IP"
 echo ""
 
-# Check if IP in .env.production matches
-if grep -q "$CURRENT_IP" .env.production; then
-    echo "✅ IP matches .env.production"
+echo "⚠️  IMPORTANT: Ensure .env.production has the correct VITE_API_URL"
+echo "   It should be: VITE_API_URL=http://$CURRENT_IP:5001/api"
+echo "   Current content of .env.production:"
+if [ -f .env.production ]; then
+    cat .env.production
 else
-    echo "⚠️  IP changed! Updating .env.production..."
-    echo "VITE_API_URL=http://$CURRENT_IP:5001/api" > .env.production
-    echo "Updated to: http://$CURRENT_IP:5001/api"
+    echo "   (.env.production file not found)"
 fi
+echo ""
+echo "Press ENTER to continue with build, or Ctrl+C to cancel and edit .env.production"
+read -r
 echo ""
 
 # Build web app

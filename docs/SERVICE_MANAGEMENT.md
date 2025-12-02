@@ -8,7 +8,7 @@
 ```
 This will:
 - Stop any existing services on ports 5001 and 3001
-- Start the backend (Flask + MongoDB + Ollama)
+- Start the backend (Flask + MongoDB + Gemini)
 - Start the frontend (React + Vite)
 - Show access URLs and process information
 
@@ -19,7 +19,7 @@ This will:
 Shows:
 - Backend status and health check
 - Frontend status and serving check
-- Ollama availability
+- Gemini environment validation
 - Access URLs
 
 ### Stop All Services
@@ -53,10 +53,11 @@ Starts frontend with auto-restart on crash.
 - **Backend API**: http://localhost:5001/api/health
 
 ### Network Access (Mobile Testing)
-- **Frontend**: http://192.168.0.217:3001
-- **Backend API**: http://192.168.0.217:5001/api/health
-
-**Note**: Replace `192.168.0.217` with your current network IP if it changes.
+To access from mobile devices, find your computer's IP:
+```bash
+ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}'
+```
+Then access at `http://YOUR_IP:3001` and `http://YOUR_IP:5001/api/health`
 
 ---
 
@@ -99,21 +100,10 @@ rm backend.log frontend.log
    ./start-all.sh
    ```
 
-### Ollama Not Working
-1. Make sure Ollama is running:
-   ```bash
-   ollama serve
-   ```
-
-2. Check if the model is available:
-   ```bash
-   ollama list
-   ```
-
-3. Pull the model if missing:
-   ```bash
-   ollama pull llama3:latest
-   ```
+### Gemini API Issues
+1. Confirm `GEMINI_API_KEY` is configured in `backend/.env` or your shell environment.
+2. Ensure the key has access to the configured model (`GEMINI_MODEL`).
+3. Review backend logs for detailed error messages returned by the Gemini SDK.
 
 ### MongoDB Connection Issues
 - Check your `.env` file in the `backend/` directory
@@ -137,8 +127,8 @@ rm backend.log frontend.log
 ### Backend Configuration
 - **Location**: `backend/.env`
 - **Required Variables**:
-  - `OLLAMA_URL=http://localhost:11434`
-  - `OLLAMA_MODEL=llama3:latest`
+   - `GEMINI_API_KEY=your_api_key`
+   - `GEMINI_MODEL=gemini-2.5-flash`
   - `PORT=5001`
   - `MONGODB_URI=mongodb+srv://...`
   - `MONGODB_DB_NAME=attendance_db`
@@ -147,7 +137,7 @@ rm backend.log frontend.log
 - **Development**: `.env.local`
   - `VITE_API_URL=http://localhost:5001/api`
 - **Production/APK**: `.env.production`
-  - `VITE_API_URL=http://192.168.0.217:5001/api`
+  - `VITE_API_URL=http://YOUR_IP:5001/api` (update with your IP for mobile)
 
 ---
 
@@ -175,7 +165,7 @@ rm backend.log frontend.log
 ✅ **Health Checks**: Automatic verification of service status  
 ✅ **Network Access**: Both services accessible from mobile devices  
 ✅ **Stable Backend**: No more crashes from Flask debug mode  
-✅ **Ollama Integration**: Llama 3 AI features fully working  
+✅ **Gemini Integration**: AI features fully working via Google Generative AI  
 ✅ **MongoDB**: Atlas integration with all CRUD operations  
 
 ---
@@ -193,8 +183,8 @@ rm backend.log frontend.log
    - Check logs: `tail -f backend.log frontend.log`
 
 3. **Mobile testing**:
-   - Use network IP: http://192.168.0.217:3001
-   - Build APK: `./build-apk.sh`
+   - Update `.env.production` with your network IP
+   - Build APK: `npm run build && npx cap sync android`
    - Install APK on device
 
 4. **When done**:
@@ -208,7 +198,7 @@ rm backend.log frontend.log
 
 If services keep crashing:
 1. Check logs in `backend.log` and `frontend.log`
-2. Verify Ollama is running: `ollama list`
+2. Verify Gemini credentials are loaded in the backend environment
 3. Test MongoDB connection in backend logs
 4. Ensure no other apps are using ports 5001 or 3001
 5. Run `./check-status.sh` to diagnose issues

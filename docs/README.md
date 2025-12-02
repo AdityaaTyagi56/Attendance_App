@@ -22,7 +22,7 @@ IIIT-NR Attendance System is a comprehensive attendance management solution desi
 
 ### ✨ Key Highlights
 
-- 🤖 **AI-Powered Analytics** - Intelligent attendance summaries and predictions using Ollama (Llama 3)
+- 🤖 **AI-Powered Analytics** - Intelligent attendance summaries and predictions powered by Gemini 2.5 Flash
 - 📱 **Cross-Platform** - Works as a web app and Android mobile app (via Capacitor)
 - 🎨 **Modern UI/UX** - Beautiful glassmorphic design with dark/light theme support
 - 🔄 **Real-time Sync** - MongoDB cloud integration for seamless data synchronization
@@ -72,7 +72,7 @@ IIIT-NR Attendance System is a comprehensive attendance management solution desi
 ### Backend
 - **Framework**: Flask 3.0.0 (Python)
 - **Database**: MongoDB Cloud (Atlas)
-- **AI Engine**: Ollama with Llama 3 model
+- **AI Engine**: Gemini 2.5 Flash via Google Generative AI SDK
 - **API**: RESTful API with CORS support
 
 ### Infrastructure
@@ -86,12 +86,12 @@ IIIT-NR Attendance System is a comprehensive attendance management solution desi
 
 ### Prerequisites
 
-Before you begin, ensure you have the following installed:
+Before you begin, ensure you have the following installed or configured:
 
 - **Node.js** (v18 or higher)
 - **Python** (v3.8 or higher)
 - **MongoDB Atlas Account** (for cloud database)
-- **Ollama** (for AI features)
+- **Google AI Studio API key** with access to Gemini 2.5 Flash
 
 ### Step 1: Clone the Repository
 
@@ -124,27 +124,21 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Edit `backend/.env` and add your MongoDB connection string:
+Edit `backend/.env` and add your MongoDB connection string and Gemini credentials:
 
 ```env
 MONGODB_URI=your_mongodb_connection_string_here
-OLLAMA_URL=http://localhost:11434
-OLLAMA_MODEL=llama3
+GEMINI_API_KEY=your_api_key
+GEMINI_MODEL=gemini-2.5-flash
 PORT=5001
 ```
 
-### Step 4: Install and Configure Ollama
+### Step 4: Configure Gemini Access
 
-```bash
-# Install Ollama (macOS/Linux)
-curl -fsSL https://ollama.com/install.sh | sh
-
-# Pull the Llama 3 model
-ollama pull llama3
-
-# Start Ollama service
-ollama serve
-```
+1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey).
+2. Create a new API key (or reuse an existing one with Gemini access).
+3. Add the key to `backend/.env` as `GEMINI_API_KEY`.
+4. Optionally change `GEMINI_MODEL` if you want to target a different Gemini variant.
 
 ### Step 5: MongoDB Setup
 
@@ -164,7 +158,7 @@ For detailed MongoDB setup instructions, see [MONGODB_GUIDE.md](MONGODB_GUIDE.md
 #### Option 1: Using Helper Scripts (Recommended)
 
 ```bash
-# Start all services (frontend + backend + ollama check)
+# Start all services (frontend + backend + Gemini health check)
 ./start-all.sh
 
 # Check service status
@@ -187,15 +181,11 @@ python app_mongodb.py
 npm run dev
 ```
 
-**Terminal 3 - Ollama:**
-```bash
-ollama serve
-```
+- Ensure `GEMINI_API_KEY` is exported in the environment running the backend (or defined in `backend/.env`).
 
 The application will be available at:
 - **Frontend**: http://localhost:3001
 - **Backend API**: http://localhost:5001
-- **Ollama**: http://localhost:11434
 
 ### Default Login Credentials
 
@@ -292,8 +282,8 @@ Edit `backend/.env`:
 
 ```env
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/
-OLLAMA_URL=http://localhost:11434
-OLLAMA_MODEL=llama3
+GEMINI_API_KEY=your_api_key
+GEMINI_MODEL=gemini-2.5-flash
 PORT=5001
 ```
 
@@ -328,7 +318,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🙏 Acknowledgments
 
 - IIIT Naya Raipur for the educational environment
-- Ollama team for the amazing AI integration
+- Google DeepMind for Gemini models and APIs
 - MongoDB for reliable cloud database services
 - React and Flask communities for excellent documentation
 

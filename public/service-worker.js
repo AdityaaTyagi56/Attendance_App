@@ -2,7 +2,7 @@ const CACHE_NAME = 'attendance-pro-cache-v2';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/index.tsx',
+  '/src/index.tsx',
   '/icon.svg',
   '/manifest.json'
 ];
@@ -21,9 +21,7 @@ self.addEventListener('install', event => {
 // Cache and return requests
 self.addEventListener('fetch', event => {
   // Skip caching for API requests
-  if (event.request.url.includes('/api/') ||
-    event.request.url.includes('localhost:5001') ||
-    event.request.url.includes('172.16.204.75:5001')) {
+  if (event.request.url.includes('/api/')) {
     return;
   }
 

@@ -9,13 +9,11 @@ const config: CapacitorConfig = {
     androidScheme: 'http',
     // Don't clear cookies/cache on reload
     cleartext: true,
-    url: 'http://192.168.0.217:3001',
+    // url: 'http://YOUR_IP:3001', // Uncomment and set IP for live reload
     // Allow loading external content
     allowNavigation: [
-      'http://192.168.0.217:5001',
-      'http://192.168.0.217:3001',
-      'http://10.*',
-      'http://192.168.*'
+      'http://*',
+      'https://*'
     ]
   },
   android: {

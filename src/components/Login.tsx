@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { User, Student, Teacher } from '../types';
-import { Eye, EyeOff, User as UserIcon, GraduationCap } from 'lucide-react';
+import { Eye, EyeOff, User as UserIcon, GraduationCap, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { getApiUrl, setApiUrl, resetApiUrl } from '../utils/config';
 
 interface LoginProps {
   onLogin: (user: User) => void;
@@ -41,8 +42,73 @@ const Login: React.FC<LoginProps> = ({ onLogin, students, teachers }) => {
     }
   };
 
+  const [showSettings, setShowSettings] = useState(false);
+  const [apiUrl, setApiUrlState] = useState(getApiUrl());
+
+  const handleSaveSettings = () => {
+    setApiUrl(apiUrl);
+    setShowSettings(false);
+  };
+
+  const handleResetSettings = () => {
+    resetApiUrl();
+    setApiUrlState(getApiUrl());
+    setShowSettings(false);
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Settings Button */}
+      <button 
+        onClick={() => setShowSettings(true)}
+        className="absolute top-4 right-4 p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-md hover:bg-white transition-colors z-50"
+        title="Server Settings"
+      >
+        <Settings className="w-6 h-6 text-gray-600" />
+      </button>
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <h3 className="text-xl font-bold mb-4 text-gray-800">Server Configuration</h3>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Backend API URL</label>
+              <input
+                type="text"
+                value={apiUrl}
+                onChange={(e) => setApiUrlState(e.target.value)}
+                className="w-full px-4 py-2 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                placeholder="http://192.168.x.x:5001/api"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Current: {getApiUrl()}
+              </p>
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={handleResetSettings}
+                className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              >
+                Reset to Default
+              </button>
+              <button
+                onClick={() => setShowSettings(false)}
+                className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveSettings}
+                className="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+              >
+                Save & Reload
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
@@ -117,7 +183,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, students, teachers }) => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                <div className="flex w-full bg-surface-variant/50 dark:bg-black/20 rounded-2xl p-1.5">
+                <div className="flex w-full surface-variant-50 rounded-2xl p-1.5">
                   <button
                     type="button"
                     onClick={() => setUserType('teacher')}
@@ -147,7 +213,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, students, teachers }) => {
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   required
-                  className="w-full px-5 py-4 rounded-2xl bg-surface-variant/50 dark:bg-black/20 border border-transparent focus:border-primary/50 focus:bg-surface dark:focus:bg-black/40 focus:ring-4 focus:ring-primary/10 transition-all outline-none text-text placeholder:text-text-secondary/50"
+                  className="w-full px-5 py-4 rounded-2xl surface-variant-50 border border-transparent focus:border-primary/50 focus:bg-surface dark:focus:bg-black/40 focus:ring-4 focus:ring-primary/10 transition-all outline-none text-text placeholder:text-text-secondary/50"
                   placeholder="Enter your email"
                 />
               </motion.div>
@@ -166,7 +232,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, students, teachers }) => {
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     required
-                    className="w-full px-5 py-4 rounded-2xl bg-surface-variant/50 dark:bg-black/20 border border-transparent focus:border-primary/50 focus:bg-surface dark:focus:bg-black/40 focus:ring-4 focus:ring-primary/10 transition-all outline-none text-text placeholder:text-text-secondary/50"
+                    className="w-full px-5 py-4 rounded-2xl surface-variant-50 border border-transparent focus:border-primary/50 focus:bg-surface dark:focus:bg-black/40 focus:ring-4 focus:ring-primary/10 transition-all outline-none text-text placeholder:text-text-secondary/50"
                     placeholder="Enter your password"
                   />
                   <button

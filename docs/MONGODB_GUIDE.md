@@ -16,7 +16,7 @@ Your backend is successfully connected to MongoDB Atlas and can store/retrieve d
 
 If you have students, courses, or attendance in your app already:
 
-1. Open your app in the browser: http://192.168.0.217:3001
+1. Open your app in the browser: http://localhost:3001
 2. Open Developer Tools (F12 or Cmd+Option+I on Mac)
 3. Go to the **Console** tab
 4. Copy and paste this migration script:
@@ -24,7 +24,7 @@ If you have students, courses, or attendance in your app already:
 ```javascript
 // MongoDB Migration Script
 (async function() {
-  const API_URL = 'http://192.168.0.217:5001/api'; // Use your network IP
+  const API_URL = 'http://localhost:5001/api'; // Or use your network IP for mobile
   
   // Get data from localStorage
   const students = JSON.parse(localStorage.getItem('students') || '[]');
@@ -106,7 +106,7 @@ Add a new student through your app:
 Then verify it's in MongoDB:
 
 ```bash
-curl http://192.168.0.217:5001/api/students
+curl http://localhost:5001/api/students
 ```
 
 You should see the student in the response!
@@ -115,7 +115,7 @@ You should see the student in the response!
 
 ### Check Backend Health
 ```bash
-curl http://192.168.0.217:5001/api/health
+curl http://localhost:5001/api/health
 ```
 
 Expected response:
@@ -123,23 +123,23 @@ Expected response:
 {
   "status": "ok",
   "mongodb_status": "ok",
-  "ollama_status": "ok"
+  "gemini_status": "ok"
 }
 ```
 
 ### View All Students in Database
 ```bash
-curl http://192.168.0.217:5001/api/students | python3 -m json.tool
+curl http://localhost:5001/api/students | python3 -m json.tool
 ```
 
 ### View All Courses in Database
 ```bash
-curl http://192.168.0.217:5001/api/courses | python3 -m json.tool
+curl http://localhost:5001/api/courses | python3 -m json.tool
 ```
 
 ### View All Attendance Records
 ```bash
-curl http://192.168.0.217:5001/api/attendance | python3 -m json.tool
+curl http://localhost:5001/api/attendance | python3 -m json.tool
 ```
 
 ## MongoDB Atlas Dashboard
@@ -158,7 +158,7 @@ You can also view your data in MongoDB Atlas:
 
 ## API Endpoints
 
-All endpoints are available at: http://192.168.0.217:5001/api
+All endpoints are available at: http://localhost:5001/api
 
 ### Students
 - `GET /api/students` - Get all students

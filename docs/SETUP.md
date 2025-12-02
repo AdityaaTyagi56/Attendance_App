@@ -2,19 +2,15 @@
 
 ## Integration Complete! 🎉
 
-Your app now uses a Flask backend that integrates with Ollama Llama 3. This architecture works for both web and mobile apps.
+Your app now uses a Flask backend that integrates with Google Gemini 2.5 Flash. This architecture works for both web and mobile apps.
 
 ## Quick Start
 
-### 1. Start Ollama with Llama 3
+### 1. Configure Gemini Access
 
-```bash
-# Pull Llama 3 model (if not already installed)
-ollama pull llama3
-
-# Start Ollama server
-ollama serve
-```
+1. Create an API key at [Google AI Studio](https://makersuite.google.com/app/apikey).
+2. Add the key to `backend/.env` as `GEMINI_API_KEY`.
+3. Optionally set `GEMINI_MODEL=gemini-2.5-flash` (default) or another supported Gemini model.
 
 ### 2. Start Flask Backend
 
@@ -85,7 +81,7 @@ If you want to build a mobile app, the backend is already configured for mobile 
    // In your React Native app
    import axios from 'axios';
 
-   const API_URL = 'http://10.25.196.34:5001/api';
+   const API_URL = 'http://YOUR_COMPUTER_IP:5001/api';
 
    async function getAttendanceSummary(course, students, records) {
      const response = await axios.post(`${API_URL}/attendance/summary`, {
@@ -113,9 +109,8 @@ If you want to build a mobile app, the backend is already configured for mobile 
          │ HTTP
          ▼
 ┌─────────────────┐
-│     Ollama      │
-│   Llama 3 LLM   │
-│  (Port 11434)   │
+│   Gemini API    │
+│  (Google Cloud) │
 └─────────────────┘
 ```
 
@@ -130,13 +125,13 @@ If you want to build a mobile app, the backend is already configured for mobile 
 
 ### Frontend (`.env.local`)
 ```env
-VITE_API_URL=http://10.25.196.34:5001/api
+VITE_API_URL=http://localhost:5001/api
 ```
 
 ### Backend (`backend/.env`)
 ```env
-OLLAMA_URL=http://localhost:11434
-OLLAMA_MODEL=llama3
+GEMINI_API_KEY=your_api_key
+GEMINI_MODEL=gemini-2.5-flash
 PORT=5001
 ```
 
@@ -147,10 +142,10 @@ PORT=5001
 - Activate virtual environment: `source backend/venv/bin/activate`
 - Install dependencies: `pip install -r backend/requirements.txt`
 
-### Ollama connection error
-- Verify Ollama is running: `ollama list`
-- Check Ollama URL in `backend/.env`
-- Test manually: `curl http://localhost:11434/api/tags`
+### Gemini API errors
+- Ensure `GEMINI_API_KEY` is present in `backend/.env`
+- Confirm the key has access to the Gemini model you're requesting
+- Inspect backend logs for detailed error codes returned by the Gemini SDK
 
 ### Frontend can't connect to backend
 - Verify backend is running on port 5001

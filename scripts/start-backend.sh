@@ -3,11 +3,11 @@
 # Start Backend with Auto-Restart
 # This script keeps the backend running even if it crashes
 
-cd "$(dirname "$0")/backend"
+cd "$(dirname "$0")/../backend"
 
 while true; do
     echo "[$(date)] Starting backend server..."
-    python3 app_mongodb.py 2>&1 | tee -a backend.log
+    python3 app_mongodb.py 2>&1 | tee -a ../logs/backend.log
     EXIT_CODE=$?
     
     if [ $EXIT_CODE -eq 0 ]; then

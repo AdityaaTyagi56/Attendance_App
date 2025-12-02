@@ -2,6 +2,17 @@
 
 # Check Status of Services
 
+PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+ENV_FILE="$PROJECT_DIR/backend/.env"
+
+# Load backend environment variables so GEMINI_* settings are available
+if [ -f "$ENV_FILE" ]; then
+    set -a
+    # shellcheck source=/dev/null
+    source "$ENV_FILE"
+    set +a
+fi
+
 echo "===================================="
 echo "Service Status Check"
 echo "===================================="
@@ -48,12 +59,12 @@ fi
 
 echo ""
 
-# Check Ollama
-echo "Ollama (Port 11434):"
-if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
-    echo "  ✓ Running and accessible"
+# Check Gemini configuration
+echo "Gemini API configuration:"
+if [ -z "$GEMINI_API_KEY" ]; then
+    echo "  ⚠ GEMINI_API_KEY not set"
 else
-    echo "  ⚠ Not accessible (run: ollama serve)"
+    echo "  ✓ GEMINI_API_KEY detected"
 fi
 
 echo ""

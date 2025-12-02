@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Course, Student, AttendanceRecord, AttendanceReportData } from '../types';
-import { generateAttendanceSummary } from '../services/ollamaService';
+import { generateAttendanceSummary } from '../services/geminiService';
 import DonutChart from './DonutChart';
 import SkeletonLoader from './SkeletonLoader';
 import { ExclamationTriangleIcon, InformationCircleIcon } from './icons';
