@@ -495,16 +495,17 @@ def build_port_candidates() -> List[int]:
     return ports
 
 
+# Initialize MongoDB (Run at module level for Gunicorn)
+try:
+    db_connected = db.init_db()
+    if db_connected:
+        print("✓ Connected to MongoDB")
+    else:
+        print("⚠ Warning: MongoDB connection failed")
+except Exception as e:
+    print(f"⚠ Warning: MongoDB initialization error: {e}")
+
 if __name__ == '__main__':
-    # Initialize MongoDB
-    try:
-        db_connected = db.init_db()
-        if db_connected:
-            print("✓ Connected to MongoDB")
-        else:
-            print("⚠ Warning: MongoDB connection failed")
-    except Exception as e:
-        print(f"⚠ Warning: MongoDB initialization error: {e}")
 
     # Validate Gemini configuration
     try:
