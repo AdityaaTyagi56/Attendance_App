@@ -6,3 +6,4 @@ python-dotenv==1.0.0
 google-generativeai==0.8.2
 pyngrok==7.1.2
 gunicorn==21.2.0
+dnspython==2.6.1
