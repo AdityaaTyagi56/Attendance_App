@@ -25,6 +25,8 @@ dist-ssr
 
 # Environment files (keep .env.production for deployment config)
 backend/.env
+.env
+*.env
 .env.local
 
 # Python
