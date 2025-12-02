@@ -33,3 +33,7 @@ __pycache__
 *.pyo
 *.pyd
 .Python
+
+# Electron build output
+electron-dist
+build
