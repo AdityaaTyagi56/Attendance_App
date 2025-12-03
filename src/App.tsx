@@ -8,6 +8,7 @@ import ReportGenerator from './components/ReportGenerator';
 import Login from './components/Login';
 import StudentDashboard from './components/StudentDashboard';
 import TeacherDashboard from './components/TeacherDashboard';
+import ErrorBoundary from './components/ErrorBoundary';
 import { Users, BookOpen, ClipboardCheck, BarChart2, LogOut, Sun, Moon, UserCircle, Menu, X } from 'lucide-react';
 import Chatbot from './components/Chatbot';
 import * as api from './services/apiService';
@@ -260,7 +261,11 @@ const App: React.FC = () => {
       case View.COURSES:
         return <CourseManager courses={courses} setCourses={setCourses} students={visibleStudents} teacherBranch={teacherUser.branch} attendanceRecords={attendance} setAttendance={setAttendance} />;
       case View.TAKE_ATTENDANCE:
-        return <AttendanceTaker courses={visibleCourses} students={students} attendance={attendance} setAttendance={setAttendance} />;
+        return (
+          <ErrorBoundary>
+            <AttendanceTaker courses={visibleCourses} students={students} attendance={attendance} setAttendance={setAttendance} />
+          </ErrorBoundary>
+        );
       case View.REPORTS:
         return <ReportGenerator courses={visibleCourses} students={students} attendanceRecords={visibleAttendance} />;
       case View.DASHBOARD:

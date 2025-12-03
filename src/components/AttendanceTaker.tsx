@@ -88,11 +88,6 @@ const StudentAttendanceItem = React.memo(({ student, isPresent, isToggling, onTo
 );
 
 const AttendanceTaker: React.FC<AttendanceTakerProps> = ({ courses, students, attendance, setAttendance }) => {
-  // Add safety checks for props
-  if (!courses || !students || !attendance || !setAttendance) {
-    return <div className="p-8 text-center text-on-surface dark:text-on-surface-dark">Loading attendance system...</div>;
-  }
-
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [presentStudentIds, setPresentStudentIds] = useState<Set<string>>(new Set());
@@ -329,6 +324,10 @@ const AttendanceTaker: React.FC<AttendanceTakerProps> = ({ courses, students, at
     setIsOptionsMenuOpen(false);
   };
 
+  // Safety check - must be AFTER all hooks to follow React Rules of Hooks
+  if (!courses || !students || !attendance || !setAttendance) {
+    return <div className="p-8 text-center text-on-surface dark:text-on-surface-dark">Loading attendance system...</div>;
+  }
 
   return (
     <div>
