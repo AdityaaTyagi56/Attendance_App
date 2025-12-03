@@ -198,6 +198,9 @@ const saveUrl = (url: string) => {
   }
 };
 
+// Production backend URL - always available
+const PRODUCTION_API_URL = 'https://iiit-nr-attendance-backend.onrender.com/api';
+
 /**
  * Get API URL synchronously (uses cached value or fallback)
  */
@@ -210,11 +213,8 @@ export const getApiUrl = (): string => {
   const envUrl = import.meta.env.VITE_API_URL;
   if (envUrl) return envUrl;
 
-  if (hasWindow && window.location.hostname) {
-    return `http://${window.location.hostname}:5001/api`;
-  }
-
-  return 'http://localhost:5001/api';
+  // For mobile apps or when no other URL works, use production backend
+  return PRODUCTION_API_URL;
 };
 
 export const setApiUrl = (url: string) => {

@@ -5,15 +5,12 @@ const config: CapacitorConfig = {
   appName: 'IIIT-NR Attendance',
   webDir: 'dist',
   server: {
-    // Allow cleartext traffic for local network backend
-    androidScheme: 'http',
-    // Don't clear cookies/cache on reload
-    cleartext: true,
-    // url: 'http://YOUR_IP:3001', // Uncomment and set IP for live reload
+    // Use HTTPS for production backend
+    androidScheme: 'https',
     // Allow loading external content
     allowNavigation: [
-      'http://*',
-      'https://*'
+      'https://*',
+      'http://*'
     ]
   },
   android: {
