@@ -434,7 +434,7 @@ const AttendanceTaker: React.FC<AttendanceTakerProps> = ({ courses, students, at
                     student={student}
                     isPresent={presentStudentIds.has(student.id)}
                     isToggling={justToggledStudentId === student.id}
-                    onToggle={toggleStudentPresence}
+                    onToggle={handleToggleStudentPresence}
                     onPhotoClick={openPhotoViewer}
                     index={index}
                   />
