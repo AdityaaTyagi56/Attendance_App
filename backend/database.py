@@ -3,6 +3,7 @@ MongoDB database connection and operations
 """
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
+from bson import ObjectId
 import os
 from typing import Dict, List, Optional
 from datetime import datetime
@@ -59,6 +60,9 @@ def create_student(student_data: Dict) -> Dict:
     student_data['updatedAt'] = datetime.utcnow()
     result = db.students.insert_one(student_data)
     student_data['_id'] = str(result.inserted_id)
+    # Ensure every student document has a stable id field for the frontend/mobile app
+    if 'id' not in student_data or not student_data['id']:
+        student_data['id'] = student_data['_id']
     return student_data
 
 
@@ -67,24 +71,51 @@ def get_all_students() -> List[Dict]:
     students = list(db.students.find())
     for student in students:
         student['_id'] = str(student['_id'])
+        # Backfill id if older records were created without it
+        if 'id' not in student or not student['id']:
+            student['id'] = student['_id']
     return students
 
 
 def get_student_by_id(student_id: str) -> Optional[Dict]:
     """Get student by ID"""
     student = db.students.find_one({"id": student_id})
+    if not student:
+        try:
+            object_id = ObjectId(student_id)
+            student = db.students.find_one({"_id": object_id})
+            if student and ('id' not in student or not student['id']):
+                db.students.update_one({"_id": object_id}, {"$set": {"id": student_id}})
+        except Exception:
+            student = None
     if student:
         student['_id'] = str(student['_id'])
+        if 'id' not in student or not student['id']:
+            student['id'] = student['_id']
     return student
 
 
 def update_student(student_id: str, update_data: Dict) -> bool:
     """Update student"""
+    update_data = {k: v for k, v in update_data.items() if k != '_id'}
     update_data['updatedAt'] = datetime.utcnow()
     result = db.students.update_one(
         {"id": student_id},
         {"$set": update_data}
     )
+
+    if result.modified_count == 0:
+        try:
+            object_id = ObjectId(student_id)
+            # When falling back to _id, also ensure the document now has the "id" field for future lookups
+            fallback_update = {**update_data, "id": student_id}
+            result = db.students.update_one(
+                {"_id": object_id},
+                {"$set": fallback_update}
+            )
+        except Exception:
+            pass
+
     return result.modified_count > 0
 
 
