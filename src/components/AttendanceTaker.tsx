@@ -197,11 +197,18 @@ const AttendanceTaker: React.FC<AttendanceTakerProps> = ({ courses, students, at
     const existingRecordIndex = attendance.findIndex(r => r.courseId === selectedCourseId && r.date === date);
     const existingRecord = attendance[existingRecordIndex];
 
+    // Convert presentStudentIds to attendanceData format for backend
+    const attendanceData = enrolledStudents.map(student => ({
+        studentId: student.id,
+        status: presentStudentIds.has(student.id) ? 'present' : 'absent'
+    }));
+
     try {
         if (existingRecordIndex > -1) {
             const updatedRecord = {
                 ...existingRecord,
                 presentStudentIds: Array.from(presentStudentIds),
+                attendanceData, // Add backend-compatible format
                 timestamp: newTimestamp,
             };
             
@@ -227,6 +234,7 @@ const AttendanceTaker: React.FC<AttendanceTakerProps> = ({ courses, students, at
                 courseId: selectedCourseId,
                 date,
                 presentStudentIds: Array.from(presentStudentIds),
+                attendanceData, // Add backend-compatible format
                 timestamp: newTimestamp,
             };
             
@@ -247,7 +255,7 @@ const AttendanceTaker: React.FC<AttendanceTakerProps> = ({ courses, students, at
         setRecordTimestamp(newTimestamp);
     } catch (error) {
         console.error("Failed to save attendance:", error);
-        alert("Failed to save attendance.");
+        alert("Failed to save attendance. Please check console for details.");
     }
   };
 
