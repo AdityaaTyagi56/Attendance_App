@@ -162,29 +162,37 @@ export const discoverApiUrl = async (onStatus?: (status: string) => void): Promi
     }
   }
 
-  // Production backend (try first for deployed versions)
+  // Production backend (priority for deployed versions)
   const isProduction = import.meta.env.PROD;
+  const envUrl = import.meta.env.VITE_API_URL;
+  
   if (isProduction) {
     updateStatus(`Connecting to production backend...`);
-    if (await tryConnect(PRODUCTION_API_URL, 5000)) {
+    
+    // Try production URL first
+    if (await tryConnect(PRODUCTION_API_URL, 8000)) {
       updateStatus(`✓ Connected to production backend`);
       discoveredApiUrl = PRODUCTION_API_URL;
       return PRODUCTION_API_URL;
     }
-  }
-
-  // Environment variable URL (for custom production builds)
-  const envUrl = import.meta.env.VITE_API_URL;
-  if (envUrl && envUrl !== PRODUCTION_API_URL) {
-    updateStatus(`Validating environment URL: ${envUrl}`);
-    if (await tryConnect(envUrl, 5000)) {
-      updateStatus(`Using environment URL: ${envUrl}`);
-      discoveredApiUrl = envUrl;
-      return envUrl;
+    
+    // Try env URL if different
+    if (envUrl && envUrl !== PRODUCTION_API_URL) {
+      updateStatus(`Trying environment URL...`);
+      if (await tryConnect(envUrl, 8000)) {
+        updateStatus(`✓ Connected via environment URL`);
+        discoveredApiUrl = envUrl;
+        return envUrl;
+      }
     }
-    updateStatus(`Environment URL unreachable. Falling back to discovery.`);
+    
+    // In production, don't scan local URLs - just use the production URL
+    updateStatus(`Using production backend (connection may be slow)`);
+    discoveredApiUrl = PRODUCTION_API_URL;
+    return PRODUCTION_API_URL;
   }
 
+  // DEVELOPMENT MODE ONLY - scan local URLs
   updateStatus(`Scanning common local URLs (ports 5001, 5005, 5010)...`);
   const candidateUrls = buildCandidateUrls();
   const discovered = await tryMultipleUrls(candidateUrls, 1500);

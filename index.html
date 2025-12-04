@@ -256,7 +256,21 @@
 <link rel="stylesheet" href="/index.css">
 </head>
 <body class="bg-surface-variant dark:bg-surface-dark-variant font-sans">
-  <div id="root"></div>
+  <div id="root">
+    <!-- Initial Loading Screen (shown while React loads) -->
+    <div style="position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #000000; color: #F0F0F5;">
+      <div style="width: 64px; height: 64px; border: 4px solid #D4AF37; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 2rem;"></div>
+      <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; color: #94A3B8; text-align: center; padding: 0 1rem;">
+        <p style="margin-bottom: 0.5rem; font-weight: bold; color: #D4AF37;">🔗 Loading IIIT-NR Attendance</p>
+        <p style="color: #10B981;">Connecting to backend...</p>
+      </div>
+    </div>
+    <style>
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+  </div>
   <script type="module" src="/src/index.tsx"></script>
 </body>
 </html>
