@@ -12,7 +12,7 @@
 
 **A modern, AI-powered attendance management system for IIIT Naya Raipur**
 
-[🌐 Live Demo](https://iiit-nr-attendance2.vercel.app/) • [📱 Download APK](#-mobile-app-android) • [📖 Documentation](#-documentation)
+[🌐 Live Demo](https://attendance-app-adityaatyagi56s-projects.vercel.app/) • [📱 Download APK](#-mobile-app-android) • [📖 Documentation](#-documentation)
 
 </div>
 
@@ -26,11 +26,12 @@
 - **✅ Database**: MongoDB Atlas - Secure cloud database
 - **✅ Mobile Ready**: Build APK for Android devices
 - **✅ AI Powered**: Gemini 2.5 Flash integration for intelligent features
+- **✅ Performance Optimized**: Reduced animations for lag-free mobile experience
 
 ### 🔗 **Live URLs**
-- **Frontend**: https://iiit-nr-attendance2.vercel.app/
+- **Frontend**: https://attendance-app-adityaatyagi56s-projects.vercel.app/
 - **Backend API**: https://iiit-nr-attendance-backend.onrender.com/
-- **Repository**: https://github.com/AdityaaTyagi56/iiit-nr-attendance2
+- **Repository**: https://github.com/AdityaaTyagi56/Attendance_App
 
 ---
 
@@ -112,7 +113,7 @@ IIIT-NR Attendance System is a comprehensive, cloud-deployed attendance manageme
 ## 🌐 Quick Start (Use Live Version)
 
 ### For End Users
-1. **Visit**: https://iiit-nr-attendance2.vercel.app/
+1. **Visit**: https://attendance-app-adityaatyagi56s-projects.vercel.app/
 2. **Login** with teacher credentials:
    - Email: `dsai-teacher@iiitnr.edu.in`
    - Password: `pass123`
@@ -130,8 +131,8 @@ IIIT-NR Attendance System is a comprehensive, cloud-deployed attendance manageme
 ### Build APK
 ```bash
 # Clone the repository
-git clone https://github.com/AdityaaTyagi56/iiit-nr-attendance2.git
-cd iiit-nr-attendance2
+git clone https://github.com/AdityaaTyagi56/Attendance_App.git
+cd Attendance_App
 
 # Install dependencies
 npm install
@@ -170,8 +171,8 @@ open -a "Android Studio" android/
 
 ### Step 1: Clone Repository
 ```bash
-git clone https://github.com/AdityaaTyagi56/iiit-nr-attendance2.git
-cd iiit-nr-attendance2
+git clone https://github.com/AdityaaTyagi56/Attendance_App.git
+cd Attendance_App
 ```
 
 ### Step 2: Frontend Setup
@@ -254,7 +255,7 @@ Visit:
 ## 🏗️ Project Structure
 
 ```
-iiit-nr-attendance2/
+Attendance_App/
 ├── src/
 │   ├── components/           # React components
 │   │   ├── AttendanceTaker.tsx
@@ -363,7 +364,7 @@ git add . && git commit -m "Update" && git push
 Contributions are welcome! Here's how to contribute:
 
 1. **Fork** the repository
-2. **Clone** your fork: `git clone https://github.com/yourusername/iiit-nr-attendance2.git`
+2. **Clone** your fork: `git clone https://github.com/yourusername/Attendance_App.git`
 3. **Create branch**: `git checkout -b feature/AmazingFeature`
 4. **Make changes** and test locally
 5. **Commit**: `git commit -m 'Add some AmazingFeature'`
@@ -412,7 +413,7 @@ If you encounter any issues or have questions:
 1. 📖 **Check Documentation**: Review the [docs/](docs/) directory
 2. 🐛 **Report Issues**: Create a GitHub issue with details
 3. 💬 **Contact**: Email adityat25102@iiitnr.edu.in
-4. 🌐 **Live Demo**: Test at https://iiit-nr-attendance2.vercel.app/
+4. 🌐 **Live Demo**: Test at https://attendance-app-adityaatyagi56s-projects.vercel.app/
 
 ### Common Issues & Solutions
 
@@ -437,7 +438,7 @@ If you encounter any issues or have questions:
 
 ## 🌟 **Ready to Transform Attendance Management?**
 
-### **[🚀 Try Live Demo](https://iiit-nr-attendance2.vercel.app/) | [📱 Build Mobile App](#-mobile-app-android) | [⭐ Star on GitHub](https://github.com/AdityaaTyagi56/iiit-nr-attendance2)**
+### **[🚀 Try Live Demo](https://attendance-app-adityaatyagi56s-projects.vercel.app/) | [📱 Build Mobile App](#-mobile-app-android) | [⭐ Star on GitHub](https://github.com/AdityaaTyagi56/Attendance_App)**
 
 **Made with ❤️ for IIIT Naya Raipur and the global education community**
 
