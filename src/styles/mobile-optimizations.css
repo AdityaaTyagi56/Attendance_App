@@ -1,0 +1,108 @@
+/* Performance Optimizations for Mobile */
+
+/* Use transform3d to trigger hardware acceleration */
+.transform-gpu {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Optimize animations for mobile */
+.transition-fast {
+  transition-duration: 0.15s;
+  transition-timing-function: ease-out;
+}
+
+/* Reduce paint operations */
+.will-change-opacity {
+  will-change: opacity;
+}
+
+.will-change-transform {
+  will-change: transform;
+}
+
+/* Container queries for better mobile performance */
+.contain-layout {
+  contain: layout;
+}
+
+.contain-paint {
+  contain: paint;
+}
+
+/* Optimized scrolling */
+.scroll-smooth {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Reduce backdrop-filter usage for better performance on older devices */
+@media (max-width: 768px) {
+  .glass {
+    backdrop-filter: none;
+    background: rgba(255, 255, 255, 0.95);
+  }
+  
+  .dark .glass {
+    background: rgba(26, 26, 26, 0.95);
+  }
+  
+  /* Simplify shadows on mobile */
+  .shadow-glass {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Reduce border radius complexity */
+  .rounded-3xl {
+    border-radius: 1rem;
+  }
+}
+
+/* Optimize for high refresh rate displays */
+@media (prefers-reduced-motion: no-preference) {
+  .smooth-animation {
+    animation-duration: 0.2s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Font display optimization is handled in Tailwind config */
+
+/* Image loading optimization */
+img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* Form optimization for mobile */
+input, textarea, select {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Touch target optimization */
+button, a, input[type="checkbox"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Optimize focus states for mobile */
+@media (hover: none) {
+  .hover\:scale-105:hover {
+    transform: none;
+  }
+  
+  .hover\:shadow-lg:hover {
+    box-shadow: none;
+  }
+}

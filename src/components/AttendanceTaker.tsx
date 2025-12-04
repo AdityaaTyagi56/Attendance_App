@@ -30,35 +30,22 @@ const StudentAttendanceItem = React.memo(({ student, isPresent, isToggling, onTo
     const animationClass = isToggling ? (isPresent ? 'animate-highlight-present' : 'animate-highlight-absent') : '';
     
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ 
-                duration: 0.35,
-                delay: index ? Math.min(index * 0.03, 0.3) : 0,
-                ease: [0.22, 1, 0.36, 1]
-            }}
-            whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
-            style={{ willChange: 'transform, opacity' }}
-        >
+        <div>
             <label
             htmlFor={`student-checkbox-${student.id}`}
-            className={`p-3 rounded-3xl cursor-pointer flex items-center justify-between border transform-gpu transition-colors duration-200 ${animationClass} ${
+            className={`p-3 rounded-3xl cursor-pointer flex items-center justify-between border transition-colors duration-150 ${
                 isPresent 
-                ? 'bg-brand/20 backdrop-blur-md border-brand/50 shadow-lg shadow-brand/20' 
-                : 'bg-surface/80 dark:bg-surface-dark/70 backdrop-blur-xl border-white/10 hover:border-brand/40 hover:shadow-lg hover:shadow-brand/10 shadow-glass'
+                ? 'bg-brand/20 border-brand/50 shadow-sm' 
+                : 'bg-surface/80 dark:bg-surface-dark/70 border-white/10 hover:border-brand/40'
             }`}
             >
             <div className="flex items-center space-x-3 overflow-hidden">
                 {student.photo ? (
-                <motion.img
-                    whileHover={{ scale: 1.08 }}
-                    whileTap={{ scale: 0.95 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                <img
                     onClick={(e) => onPhotoClick(e, student)}
                     src={student.photo}
                     alt={student.name}
-                    className="w-10 h-10 rounded-full object-cover flex-shrink-0 cursor-pointer ring-2 ring-transparent hover:ring-brand transform-gpu"
+                    className="w-10 h-10 rounded-full object-cover flex-shrink-0 cursor-pointer transition-all duration-150 hover:scale-105"
                     loading="lazy"
                 />
                 ) : (
@@ -79,7 +66,7 @@ const StudentAttendanceItem = React.memo(({ student, isPresent, isToggling, onTo
                 />
             </div>
             </label>
-        </motion.div>
+        </div>
     );
 }, (prevProps, nextProps) => 
     prevProps.student.id === nextProps.student.id &&
@@ -239,7 +226,6 @@ const AttendanceTaker: React.FC<AttendanceTakerProps> = ({ courses, students, at
                 courseId: selectedCourseId,
                 date,
                 presentStudentIds: Array.from(presentStudentIds),
-                attendanceData, // Add backend-compatible format
                 timestamp: newTimestamp,
             };
             

@@ -25,17 +25,9 @@ const CircularProgress: React.FC<{ percentage: number; size?: number; strokeWidt
   const color = percentage >= 75 ? '#10b981' : percentage >= 50 ? '#f59e0b' : '#ef4444';
 
   return (
-    <motion.div
-      initial={{ scale: 0.9, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ 
-        type: "spring",
-        stiffness: 260,
-        damping: 20,
-        mass: 0.8
-      }}
-      className="relative flex items-center justify-center transform-gpu"
-      style={{ width: size, height: size, willChange: 'transform' }}
+    <div
+      className="relative flex items-center justify-center"
+      style={{ width: size, height: size }}
     >
       <svg className="transform -rotate-90" width={size} height={size}>
         <circle
@@ -47,7 +39,7 @@ const CircularProgress: React.FC<{ percentage: number; size?: number; strokeWidt
           cx={size / 2}
           cy={size / 2}
         />
-        <motion.circle
+        <circle
           stroke={color}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
@@ -55,30 +47,17 @@ const CircularProgress: React.FC<{ percentage: number; size?: number; strokeWidt
           r={radius}
           cx={size / 2}
           cy={size / 2}
-          initial={{ strokeDashoffset: circumference }}
-          animate={{ strokeDashoffset: offset }}
-          transition={{ 
-            duration: 0.8, 
-            ease: [0.22, 1, 0.36, 1],
-            delay: 0.2
+          style={{ 
+            strokeDasharray: circumference,
+            strokeDashoffset: offset,
+            transition: 'stroke-dashoffset 0.3s ease-out'
           }}
-          style={{ strokeDasharray: circumference, willChange: 'stroke-dashoffset' }}
         />
       </svg>
-      <motion.span
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ 
-          type: "spring",
-          stiffness: 400,
-          damping: 15,
-          delay: 0.4
-        }}
-        className="absolute text-2xl font-bold text-text"
-      >
+      <span className="absolute text-2xl font-bold text-text">
         {percentage}<span className="text-base">%</span>
-      </motion.span>
-    </motion.div>
+      </span>
+    </div>
   );
 }, (prevProps, nextProps) => prevProps.percentage === nextProps.percentage && prevProps.size === nextProps.size);
 

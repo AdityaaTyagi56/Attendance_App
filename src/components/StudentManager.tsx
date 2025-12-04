@@ -100,27 +100,27 @@ const StudentManager: React.FC<StudentManagerProps> = ({ students: allStudents, 
     setPhotoToView(null);
   };
 
-  const handleSort = (newSortBy: 'studentId' | 'name') => {
+  const handleSort = React.useCallback((newSortBy: 'studentId' | 'name') => {
     if (sortBy === newSortBy) {
       setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortBy(newSortBy);
       setSortOrder('asc');
     }
-  };
+  }, [sortBy]);
 
-  const handleSelectSort = (newSortBy: 'studentId' | 'name', newSortOrder: 'asc' | 'desc') => {
+  const handleSelectSort = React.useCallback((newSortBy: 'studentId' | 'name', newSortOrder: 'asc' | 'desc') => {
     setSortBy(newSortBy);
     setSortOrder(newSortOrder);
     setIsSortMenuOpen(false);
-  };
+  }, []);
 
-  const getSortLabel = () => {
+  const getSortLabel = React.useCallback(() => {
     if (sortBy === 'name') {
         return sortOrder === 'asc' ? 'Name (A-Z)' : 'Name (Z-A)';
     }
     return sortOrder === 'asc' ? 'ID (Ascending)' : 'ID (Descending)';
-  };
+  }, [sortBy, sortOrder]);
 
   const sortedAndFilteredStudents = useMemo(() => {
     const filtered = studentsInBranch.filter(student => {
