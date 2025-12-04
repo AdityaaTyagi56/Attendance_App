@@ -23,7 +23,7 @@ let discoveredApiUrl: string | null = null;
 /**
  * Try to connect to a backend URL with a short timeout
  */
-const tryConnect = async (url: string, timeout = 2000): Promise<boolean> => {
+const tryConnect = async (url: string, timeout = 3000): Promise<boolean> => {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -162,11 +162,22 @@ export const discoverApiUrl = async (onStatus?: (status: string) => void): Promi
     }
   }
 
-  // Environment variable URL (for production builds)
+  // Production backend (try first for deployed versions)
+  const isProduction = import.meta.env.PROD;
+  if (isProduction) {
+    updateStatus(`Connecting to production backend...`);
+    if (await tryConnect(PRODUCTION_API_URL, 5000)) {
+      updateStatus(`✓ Connected to production backend`);
+      discoveredApiUrl = PRODUCTION_API_URL;
+      return PRODUCTION_API_URL;
+    }
+  }
+
+  // Environment variable URL (for custom production builds)
   const envUrl = import.meta.env.VITE_API_URL;
-  if (envUrl) {
+  if (envUrl && envUrl !== PRODUCTION_API_URL) {
     updateStatus(`Validating environment URL: ${envUrl}`);
-    if (await tryConnect(envUrl)) {
+    if (await tryConnect(envUrl, 5000)) {
       updateStatus(`Using environment URL: ${envUrl}`);
       discoveredApiUrl = envUrl;
       return envUrl;
@@ -176,7 +187,7 @@ export const discoverApiUrl = async (onStatus?: (status: string) => void): Promi
 
   updateStatus(`Scanning common local URLs (ports 5001, 5005, 5010)...`);
   const candidateUrls = buildCandidateUrls();
-  const discovered = await tryMultipleUrls(candidateUrls, 2000);
+  const discovered = await tryMultipleUrls(candidateUrls, 1500);
 
   if (discovered) {
     updateStatus(`✓ Connected via ${discovered}`);
